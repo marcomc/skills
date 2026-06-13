@@ -1,0 +1,4 @@
+interface:
+  display_name: "Move Codex Chat"
+  short_description: "Move a Codex chat between existing projects safely"
+  default_prompt: "Move this Codex chat to another existing project by updating local Codex metadata safely."

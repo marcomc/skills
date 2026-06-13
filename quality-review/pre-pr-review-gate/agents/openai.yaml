@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-PR Review Gate"
+  short_description: "Run a strict local gate before opening a PR"
+  default_prompt: "Use $pre-pr-review-gate to run the full local review gate for this branch before I open a PR or request GitHub Codex review."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Repo Discoverability"
+  short_description: "Improve repository topics, labels, descriptions, and public positioning"
+  default_prompt: "Use $github-repo-discoverability to audit this repository's GitHub description, topics, labels, README discovery surface, and promotion channels, then propose safe metadata updates."

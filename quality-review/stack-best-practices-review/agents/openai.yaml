@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stack Best Practices Review"
+  short_description: "Review code against stack-specific standards"
+  default_prompt: "Use $stack-best-practices-review to review this project for language, framework, library, and file-organization best practices, and report non-breaking findings."

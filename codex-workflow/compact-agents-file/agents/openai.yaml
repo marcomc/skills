@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compact Agents File"
+  short_description: "Compress project agent instruction files"
+  default_prompt: "Use $compact-agents-file to compact this project AGENTS.md without changing its intended behavior."

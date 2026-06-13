@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Quality Remediation"
+  short_description: "Refactor for quality, clarity, and standards"
+  default_prompt: "Use $code-quality-remediation to review this project for optimization, duplication, dead code, file organization, and stack-specific best practices, and report safe non-breaking recommendations."

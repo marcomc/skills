@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reorganize Folders"
+  short_description: "Analyze and safely reorganize folders"
+  default_prompt: "Analyze the target directory, infer the naming language, preview the proposed structure, ask for confirmation before applying any changes, and write a rollback plan for applied runs."

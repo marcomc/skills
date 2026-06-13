@@ -1,0 +1,4 @@
+interface:
+  display_name: "ChatGPT Import"
+  short_description: "Import ChatGPT chats as English coding summaries."
+  default_prompt: "Use $chatgpt-import to find ChatGPT conversations about a topic, merge them, and produce an English coding-ready summary."

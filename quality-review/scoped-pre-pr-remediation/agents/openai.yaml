@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scoped Pre-PR Remediation"
+  short_description: "Gate, fix, and learn from selected changes"
+  default_prompt: "Use $scoped-pre-pr-remediation on the current branch or selected changes before PR review."

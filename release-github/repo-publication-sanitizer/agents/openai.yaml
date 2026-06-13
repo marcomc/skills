@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Publication Sanitizer"
+  short_description: "Find personal and local-system data before publishing"
+  default_prompt: "Use $repo-publication-sanitizer to scan this repository before GitHub publication and report or remove personal, local-system, secret, host, IP, and machine-specific data."

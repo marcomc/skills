@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Project Flowcharts"
+  short_description: "Add Mermaid workflow diagrams to project docs"
+  default_prompt: "Use $document-project-flowcharts to add source-backed Mermaid flowcharts to this project's documentation."

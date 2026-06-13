@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diff Regression Check Planner"
+  short_description: "Plan regression checks from a branch diff"
+  default_prompt: "Use $diff-regression-check-planner to analyze this branch diff and produce the exact regression checks, smoke tests, and validation commands that should run before merge."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apply Liquid Glass UI"
+  short_description: "Refine app UIs with Apple-style Liquid Glass"
+  default_prompt: "Use $apply-liquid-glass-ui to refactor this app interface toward Apple Liquid Glass styling without changing workflows."

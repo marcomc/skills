@@ -1,0 +1,5 @@
+version: 1
+display_name: Init Python CLI Project
+short_description: Scaffold a new uv-based Python CLI from the shared local template.
+default_prompt: Scaffold a new Python CLI project from the shared template, resolve placeholders, and validate the generated project.
+
