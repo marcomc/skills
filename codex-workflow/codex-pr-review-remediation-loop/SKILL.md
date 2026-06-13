@@ -232,7 +232,7 @@ when the learned class is cross-repo. If the relevant pre-PR skills already
 cover the class with enough precision, record a no-op rationale instead of
 adding duplicate text.
 
-Run `markdownlint` with `/Users/mmassari/.markdownlint.json` on every
+Run `markdownlint` with `$HOME/.markdownlint.json` on every
 `SKILL.md` changed by this learning step.
 
 ## Stop Conditions

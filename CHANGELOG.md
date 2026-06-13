@@ -10,3 +10,5 @@ All notable changes to this repository are tracked here.
 - Grouped 43 skills by root-level category for `skills@latest` discovery.
 - Added install, listing, maintenance, and relationship documentation.
 - Added public-repository hygiene files.
+- Added repository agent instructions for public-safe skill maintenance.
+- Removed hard-coded maintainer-machine paths from public docs and helpers.

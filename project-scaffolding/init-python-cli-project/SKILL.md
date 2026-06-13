@@ -11,7 +11,7 @@ shared local template.
 ## What This Skill Does
 
 - generates a new project from the canonical template at
-  `/Users/mmassari/Development/templates/python-cli-template`
+  `$HOME/Development/templates/python-cli-template` unless overridden
 - fills in project placeholders for names, author, config path, Python version,
   and description
 - optionally initializes Git
@@ -21,7 +21,7 @@ shared local template.
 
 If the user does not specify otherwise:
 
-- create the project under `/Users/mmassari/Development`
+- create the project under `$HOME/Development`
 - derive `cli_name` from the requested project name in kebab-case
 - derive `package_name` from `cli_name` in snake_case
 - derive `config_name` from `cli_name`
@@ -35,8 +35,8 @@ If the user does not specify otherwise:
 1. Run the scaffolder script:
 
 ```bash
-python3 /Users/mmassari/.agents/skills/init-python-cli-project/scripts/init_python_cli_project.py \
-  --destination /Users/mmassari/Development/<project-name>
+python3 scripts/init_python_cli_project.py \
+  --destination "$HOME/Development/<project-name>"
 ```
 
 1. Read the generated `README.md`, `AGENTS.md`, and `Makefile` to confirm the
@@ -44,7 +44,7 @@ python3 /Users/mmassari/.agents/skills/init-python-cli-project/scripts/init_pyth
 1. Run at least:
 
 ```bash
-cd /Users/mmassari/Development/<project-name>
+cd "$HOME/Development/<project-name>"
 make test
 make lint
 ```
@@ -57,8 +57,9 @@ make lint
 Use these when the user gives more detail:
 
 ```bash
-python3 /Users/mmassari/.agents/skills/init-python-cli-project/scripts/init_python_cli_project.py \
-  --destination /Users/mmassari/Development/<project-name> \
+python3 scripts/init_python_cli_project.py \
+  --destination "$HOME/Development/<project-name>" \
+  --template-root "$HOME/Development/templates/python-cli-template" \
   --project-name "<Project Name>" \
   --cli-name "<cli-name>" \
   --package-name "<package_name>" \

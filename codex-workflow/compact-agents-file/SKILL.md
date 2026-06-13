@@ -101,7 +101,7 @@ Run the required checks for edited instruction files. Prefer project rules; if
 none are discoverable and the file is Markdown, run:
 
 ```bash
-markdownlint --config /Users/mmassari/.markdownlint.json <file>
+markdownlint --config "$HOME/.markdownlint.json" <file>
 ```
 
 Also run `git diff --check -- <file>` when available.

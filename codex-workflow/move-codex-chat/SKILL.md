@@ -84,16 +84,16 @@ Example:
 
 ```bash
 python3 scripts/move_codex_chat.py \
-  --dest-project movewise
+  --dest-project new-project
 ```
 
 Or with explicit chat and source project:
 
 ```bash
 python3 scripts/move_codex_chat.py \
-  --chat "Proponi nuova struttura Drive" \
-  --source-project mmassari \
-  --dest-project movewise
+  --chat "Planning notes" \
+  --source-project old-project \
+  --dest-project new-project
 ```
 
 The preview must show:
@@ -114,7 +114,7 @@ If the preview is correct and the user asked to execute, run:
 
 ```bash
 python3 scripts/move_codex_chat.py \
-  --dest-project movewise \
+  --dest-project new-project \
   --apply
 ```
 
@@ -123,7 +123,7 @@ If the preview resolved a `thread_id`, prefer pinning it for apply:
 ```bash
 python3 scripts/move_codex_chat.py \
   --thread-id "<thread-id-from-preview>" \
-  --dest-project movewise \
+  --dest-project new-project \
   --apply
 ```
 
@@ -131,9 +131,9 @@ Or with explicit chat identification:
 
 ```bash
 python3 scripts/move_codex_chat.py \
-  --chat "Proponi nuova struttura Drive" \
-  --source-project mmassari \
-  --dest-project movewise \
+  --chat "Planning notes" \
+  --source-project old-project \
+  --dest-project new-project \
   --apply
 ```
 

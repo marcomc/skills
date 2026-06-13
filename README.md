@@ -48,9 +48,11 @@ Use `--full-depth` so the CLI scans every category directory.
 
 | File | Purpose |
 | --- | --- |
+| [`AGENTS.md`](AGENTS.md) | Defines repository-specific agent maintenance rules. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Tracks public skill collection changes. |
 | [`LICENSE`](LICENSE) | Declares the MIT license for reuse and distribution. |
 | [`TODO.md`](TODO.md) | Tracks publication, curation, and maintenance follow-up. |
+| [`.gitignore`](.gitignore) | Excludes local caches, generated artifacts, and environment files. |
 
 ## Skills
 
@@ -302,7 +304,7 @@ Refresh from the installed local source only after rechecking provenance:
 
 ```bash
 npx --yes skills@latest add . --list --full-depth
-find . -name '*.md' -print0 | xargs -0 markdownlint --config /Users/mmassari/.markdownlint.json
+find . -name '*.md' -print0 | xargs -0 markdownlint --config "$HOME/.markdownlint.json"
 find . -name '*.sh' -print0 | xargs -0 shellcheck --enable=all
 ```
 

@@ -206,7 +206,7 @@ LOW_COUNT="$(awk -F '\t' '$2=="Low"{c++} END{print c+0}' "${SORTED_TSV}")"
     echo
     echo "After applying fixes, rerun:"
     echo "- shellcheck --enable=all on changed .sh files"
-    echo "- /Users/mmassari/.codex/skills/branch-qa-remediation/scripts/run-branch-qa.sh --base ${BASE_BRANCH}"
+    echo "- bash <branch-qa-remediation-skill>/scripts/run-branch-qa.sh --base ${BASE_BRANCH}"
   fi
   echo '```'
 } > "${REPORT_PATH}"

@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-TEMPLATE_ROOT = Path("/Users/mmassari/Development/templates/python-cli-template")
+DEFAULT_TEMPLATE_ROOT = Path.home() / "Development" / "templates" / "python-cli-template"
 PACKAGE_DIR_PLACEHOLDER = "__PACKAGE_NAME__"
 TEXT_EXTENSIONS = {
     ".json",
@@ -63,6 +63,12 @@ def parse_args() -> argparse.Namespace:
         description="Create a new Python CLI project from the shared local template."
     )
     parser.add_argument("--destination", required=True, type=Path)
+    parser.add_argument(
+        "--template-root",
+        type=Path,
+        default=DEFAULT_TEMPLATE_ROOT,
+        help="Template directory to copy from.",
+    )
     parser.add_argument("--project-name")
     parser.add_argument("--cli-name")
     parser.add_argument("--package-name")
@@ -145,8 +151,10 @@ def ensure_destination(destination: Path, *, force: bool) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
 
 
-def copy_template(destination: Path) -> None:
-    shutil.copytree(TEMPLATE_ROOT, destination)
+def copy_template(template_root: Path, destination: Path) -> None:
+    if not template_root.exists():
+        raise FileNotFoundError(f"Template root does not exist: {template_root}")
+    shutil.copytree(template_root, destination)
 
 
 def rename_package_dir(destination: Path, package_name: str) -> None:
@@ -187,11 +195,11 @@ def main() -> int:
     args = parse_args()
     context = build_context(args)
 
-    if not TEMPLATE_ROOT.exists():
-        raise FileNotFoundError(f"Template root not found: {TEMPLATE_ROOT}")
+    if not args.template_root.exists():
+        raise FileNotFoundError(f"Template root not found: {args.template_root}")
 
     ensure_destination(args.destination, force=args.force)
-    copy_template(args.destination)
+    copy_template(args.template_root, args.destination)
     rename_package_dir(args.destination, context.package_name)
     replace_placeholders(args.destination, context)
 
