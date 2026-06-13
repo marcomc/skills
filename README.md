@@ -7,9 +7,11 @@ Reusable AI-agent skills collected from local workflows and organized for the
 
 - [Install](#install)
 - [Layout](#layout)
+- [Project Files](#project-files)
 - [Skills](#skills)
 - [Skill Relations](#skill-relations)
 - [Maintenance](#maintenance)
+- [License](#license)
 
 ## Install
 
@@ -41,6 +43,14 @@ npx --yes skills@latest add . --list --full-depth
 
 Skills are grouped by category at the repository root as `<category>/<skill>/SKILL.md`.
 Use `--full-depth` so the CLI scans every category directory.
+
+## Project Files
+
+| File | Purpose |
+| --- | --- |
+| [`CHANGELOG.md`](CHANGELOG.md) | Tracks public skill collection changes. |
+| [`LICENSE`](LICENSE) | Declares the MIT license for reuse and distribution. |
+| [`TODO.md`](TODO.md) | Tracks publication, curation, and maintenance follow-up. |
 
 ## Skills
 
@@ -229,3 +239,7 @@ npx --yes skills@latest add . --list --full-depth
 find . -name '*.md' -print0 | xargs -0 markdownlint --config /Users/mmassari/.markdownlint.json
 find . -name '*.sh' -print0 | xargs -0 shellcheck --enable=all
 ```
+
+## License
+
+This repository is released under the [MIT License](LICENSE).

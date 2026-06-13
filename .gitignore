@@ -1,0 +1,24 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+
+# Node and package-manager caches
+node_modules/
+.npm/
+
+# Local environment and generated work areas
+.env
+.env.*
+!.env.example
+*.log
+tmp/
+.tmp/
+.work/
