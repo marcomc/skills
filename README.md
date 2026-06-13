@@ -152,82 +152,148 @@ Use `--full-depth` so the CLI scans every category directory.
 Only skills with a detected `$skill-name` reference are shown. External nodes are
 referenced by included skills but are intentionally not bundled in this repo.
 
+### PR Review Coordination
+
+This flow shows the top-level PR review loop and the skills it dispatches.
+
 ```mermaid
-flowchart TD
+flowchart LR
+    accTitle: PR review coordination
+    accDescr: Shows how the Codex PR remediation loop delegates review, scoped remediation, worker, profile, and learning skills.
+
     classDef external fill:#f7f7f7,stroke:#999,stroke-dasharray: 4 4,color:#555;
 
-    review_profiles["pre-pr-review-* profiles<br/>agent-workflows, backend-services, ci-actions,<br/>cli-tooling, config-data-flow, docs-release,<br/>frontend, infra-runtime, security-boundaries,<br/>tests-validation"]
-    record_agent_learning["record-agent-learning<br/>(external)"]:::external
-    security_best_practices["security-best-practices<br/>(external)"]:::external
+    pr_loop["codex-pr-review-remediation-loop"]
+    gate["pre-pr-review-gate"]
+    scoped["scoped-pre-pr-remediation"]
+    worker["pre-pr-remediation-worker"]
+    autolearn["codex-review-skill-autolearn"]
+    profiles["pre-pr-review-* profiles"]
+    learning["record-agent-learning (external)"]:::external
 
-    codex_pr_review_remediation_loop["codex-pr-review-remediation-loop"]
-    codex_review_skill_autolearn["codex-review-skill-autolearn"]
-    pre_pr_remediation_worker["pre-pr-remediation-worker"]
-    scoped_pre_pr_remediation["scoped-pre-pr-remediation"]
-    pre_pr_review_gate["pre-pr-review-gate"]
-    branch_qa_remediation["branch-qa-remediation"]
-    diff_regression_check_planner["diff-regression-check-planner"]
-    max_findings_relentless["max-findings-relentless"]
-    max_findings_review["max-findings-review"]
-    code_quality_remediation["code-quality-remediation"]
-    repo_publication_sanitizer["repo-publication-sanitizer"]
-    project_context_rebuilder["project-context-rebuilder"]
-    stack_best_practices_review["stack-best-practices-review"]
-    create_github_release["create-github-release"]
-    github_repo_discoverability["github-repo-discoverability"]
+    pr_loop --> gate
+    pr_loop --> scoped
+    pr_loop --> worker
+    pr_loop --> autolearn
+    pr_loop --> profiles
+    pr_loop --> learning
+    autolearn --> learning
+```
 
-    codex_pr_review_remediation_loop --> codex_review_skill_autolearn
-    codex_pr_review_remediation_loop --> pre_pr_remediation_worker
-    codex_pr_review_remediation_loop --> scoped_pre_pr_remediation
-    codex_pr_review_remediation_loop --> pre_pr_review_gate
-    codex_pr_review_remediation_loop --> review_profiles
-    codex_pr_review_remediation_loop --> record_agent_learning
+### Pre-PR Gate Composition
 
-    codex_review_skill_autolearn --> record_agent_learning
+This flow shows the review, cleanup, remediation, and learning skills composed
+by `pre-pr-review-gate`.
 
-    branch_qa_remediation --> review_profiles
-    branch_qa_remediation --> record_agent_learning
+```mermaid
+flowchart LR
+    accTitle: Pre-PR gate composition
+    accDescr: Shows the skills invoked by the local pre-PR review gate.
 
-    diff_regression_check_planner --> review_profiles
-    diff_regression_check_planner --> record_agent_learning
+    classDef external fill:#f7f7f7,stroke:#999,stroke-dasharray: 4 4,color:#555;
 
-    max_findings_review --> review_profiles
-    max_findings_review --> record_agent_learning
+    gate["pre-pr-review-gate"]
 
-    max_findings_relentless --> pre_pr_remediation_worker
-    max_findings_relentless --> review_profiles
-    max_findings_relentless --> repo_publication_sanitizer
-    max_findings_relentless --> record_agent_learning
+    context["project-context-rebuilder"]
+    branch["branch-qa-remediation"]
+    max_review["max-findings-review"]
+    diff_plan["diff-regression-check-planner"]
+    stack_review["stack-best-practices-review"]
+    profiles["pre-pr-review-* profiles"]
 
-    scoped_pre_pr_remediation --> max_findings_relentless
-    scoped_pre_pr_remediation --> pre_pr_remediation_worker
-    scoped_pre_pr_remediation --> pre_pr_review_gate
-    scoped_pre_pr_remediation --> review_profiles
-    scoped_pre_pr_remediation --> record_agent_learning
+    quality["code-quality-remediation"]
+    sanitizer["repo-publication-sanitizer"]
+    relentless["max-findings-relentless"]
+    scoped["scoped-pre-pr-remediation"]
+    worker["pre-pr-remediation-worker"]
+    autolearn["codex-review-skill-autolearn"]
 
-    pre_pr_review_gate --> project_context_rebuilder
-    pre_pr_review_gate --> branch_qa_remediation
-    pre_pr_review_gate --> max_findings_review
-    pre_pr_review_gate --> diff_regression_check_planner
-    pre_pr_review_gate --> code_quality_remediation
-    pre_pr_review_gate --> repo_publication_sanitizer
-    pre_pr_review_gate --> max_findings_relentless
-    pre_pr_review_gate --> scoped_pre_pr_remediation
-    pre_pr_review_gate --> pre_pr_remediation_worker
-    pre_pr_review_gate --> codex_review_skill_autolearn
-    pre_pr_review_gate --> stack_best_practices_review
-    pre_pr_review_gate --> review_profiles
-    pre_pr_review_gate --> security_best_practices
-    pre_pr_review_gate --> record_agent_learning
+    security["security-best-practices (external)"]:::external
+    learning["record-agent-learning (external)"]:::external
 
-    code_quality_remediation --> repo_publication_sanitizer
-    code_quality_remediation --> record_agent_learning
+    gate --> context
+    gate --> branch
+    gate --> max_review
+    gate --> diff_plan
+    gate --> stack_review
+    gate --> profiles
 
-    stack_best_practices_review --> record_agent_learning
-    repo_publication_sanitizer --> record_agent_learning
+    gate --> quality
+    gate --> sanitizer
+    gate --> relentless
+    gate --> scoped
+    gate --> worker
+    gate --> autolearn
 
-    create_github_release --> pre_pr_review_gate
-    github_repo_discoverability --> repo_publication_sanitizer
+    gate --> security
+    gate --> learning
+```
+
+### Remediation and Learning Paths
+
+This flow shows the skills that feed review profiles, sanitization, and reusable
+agent-learning capture.
+
+```mermaid
+flowchart LR
+    accTitle: Remediation and learning paths
+    accDescr: Shows secondary relationships among remediation, review, sanitizer, and learning skills.
+
+    classDef external fill:#f7f7f7,stroke:#999,stroke-dasharray: 4 4,color:#555;
+
+    scoped["scoped-pre-pr-remediation"]
+    relentless["max-findings-relentless"]
+    worker["pre-pr-remediation-worker"]
+    profiles["pre-pr-review-* profiles"]
+    sanitizer["repo-publication-sanitizer"]
+    learning["record-agent-learning (external)"]:::external
+
+    branch["branch-qa-remediation"]
+    diff_plan["diff-regression-check-planner"]
+    max_review["max-findings-review"]
+    quality["code-quality-remediation"]
+    stack_review["stack-best-practices-review"]
+
+    scoped --> relentless
+    scoped --> worker
+    scoped --> profiles
+    scoped --> learning
+
+    relentless --> worker
+    relentless --> profiles
+    relentless --> sanitizer
+    relentless --> learning
+
+    branch --> profiles
+    branch --> learning
+    diff_plan --> profiles
+    diff_plan --> learning
+    max_review --> profiles
+    max_review --> learning
+
+    quality --> sanitizer
+    quality --> learning
+    stack_review --> learning
+    sanitizer --> learning
+```
+
+### Release and Publication Entrypoints
+
+This flow shows the release-oriented skills that hand off into the review and
+sanitization stack.
+
+```mermaid
+flowchart LR
+    accTitle: Release and publication entrypoints
+    accDescr: Shows release and discoverability skills that delegate to review or sanitizer skills.
+
+    release["create-github-release"]
+    discoverability["github-repo-discoverability"]
+    gate["pre-pr-review-gate"]
+    sanitizer["repo-publication-sanitizer"]
+
+    release --> gate
+    discoverability --> sanitizer
 ```
 
 ## Maintenance
