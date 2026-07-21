@@ -11,9 +11,26 @@ broader pre-PR remediation. Do not edit files.
 ## Review Focus
 
 - Tests that prove the changed behavior, including negative paths, disabled
-  defaults, read-only behavior, and failure handling.
+  defaults, read-only behavior, and failure handling. For pipelines that write
+  durable outputs before optional external work, force a downstream timeout or
+  transport failure and assert the earlier outputs remain usable.
+- Recovery-flow tests must assert the predicate that lets the failing step
+  yield control to recovery, such as `until` or `failed_when`, not only the
+  accepted status list and presence of later recovery tasks.
 - Fixture and generated-data drift across schemas, templates, examples, and
   runtime config.
+- CLI and hardware validation fixtures should mirror real output topology,
+  indentation, multi-device blocks, and version-specific quirks; include
+  positive and negative samples that prove parsers do not match the wrong
+  device block or only the happy-path line.
+- Rendered service-unit tests should assert escaped runtime syntax, including
+  systemd `%` specifiers and literal shell `$`, and should exercise both the
+  generated artifact and the template/source contract when boot ordering or
+  oneshot readiness depends on shell snippets.
+- Service lifecycle tests should distinguish an unavailable service manager,
+  a loaded unit intentionally disabled for the active runtime, and the
+  enabled/active steady state. Inspect real load, enablement, and activity facts
+  before falling back to marker-file or shim assertions.
 - Environment semantics that can invalidate tests, including container
   filesystems where `/tmp` is tmpfs and does not support ACL/xattrs, and
   bind-mounted temp directories whose host owner or `0700` mode blocks the
@@ -27,8 +44,13 @@ broader pre-PR remediation. Do not edit files.
   syntax or happy-path checks.
 - Host-probe and installer regressions should include sibling negative paths
   for optional tool present without matching hardware, multiple candidate
-  devices or interfaces, root-without-sudo execution, and interactive prompts
-  when stdout is captured for later parsing.
+  devices or interfaces, root-without-sudo execution, interactive prompts when
+  stdout is captured for later parsing, unknown targets, partial uninstall, and
+  dry-run/apply parity for shared payload cleanup. For installers that wrap
+  third-party CLIs, cover isolated staging homes, copy-versus-link modes, failed
+  copy preserving existing payloads, non-mutating dry-runs, parser output
+  variants from the real CLI, malformed metadata, filtered-out invalid names,
+  names containing spaces, and each supported shallow discovery topology.
 - Narrow validation commands for each finding plus the repo's standard gate when
   available.
 - Live-test safety: use explicit opt-in inputs and avoid touching production or
@@ -37,6 +59,11 @@ broader pre-PR remediation. Do not edit files.
 - When tests inject fake command runners or tool locators, require a separate
   availability model so fixtures can prove optional tools are absent without
   inflating supported capability detection.
+- Fixture isolation: when a test sources generated command blocks after
+  installing stubs, verify those blocks cannot reload dependencies and replace
+  the stubs. Load dependencies before installing fakes, or omit the duplicate
+  source line, and use an intentionally unavailable runtime value so a live
+  resource cannot make the fixture pass accidentally.
 
 ## Assignment Rules
 

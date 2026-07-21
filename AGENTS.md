@@ -26,6 +26,8 @@ This repository publishes reusable AI-agent skills for installation through
 
 - Run `npx --yes skills@latest add . --list` after changing skill layout or
   frontmatter.
+- When updating a tracked skill with an active local counterpart, compare the
+  two before publication and deliberately reconcile any drift.
 - Run `markdownlint --config "$HOME/.markdownlint.json"` on changed Markdown.
 - Run `shellcheck --enable=all` on changed shell scripts.
 - Run `python3 -m compileall -q .` after changing Python helper scripts.

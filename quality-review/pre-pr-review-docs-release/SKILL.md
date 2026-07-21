@@ -36,12 +36,18 @@ of a broader pre-PR remediation. Do not edit files.
   optional description field or update it; if no parser/tooling exists, do not
   invent a cleanup finding for the suffix alone.
 - README table of contents when the README is materially changed.
-- Versioning language using `MAJOR.MINOR.PATCH` unless the repo documents a
-  different scheme.
+- Release version synchronization: when a release version changes or a
+  changelog heading becomes concrete or dated, verify the exact version across
+  package manifests, runtime constants, bundle metadata, tracked lockfiles,
+  generated protocol metadata, docs and contract examples, and exact-version
+  tests. Use `MAJOR.MINOR.PATCH` unless the repo documents a different scheme.
 - Examples and placeholders that are safe, non-private, and still deployable
-  when meant to be defaults. For executable examples, run or mentally parse the
-  command against the current CLI so strict validation flags include their
-  required companion arguments.
+  when meant to be defaults. For executable examples, evaluate the actual shell
+  assignment and expansion order; do not assume a command-prefix assignment
+  changes `$VAR` expansion in the same command. Check current CLI parsing too,
+  so strict validation flags include required companion arguments. Parse
+  multiline snippets with their declared shell to verify continuations remain
+  one command with the intended flags.
 - When a branch changes compatibility constraints (runtime versions, dependency
   bounds, or builder images), reconcile every public surface in one pass:
   dependency constraints (for example Composer), README requirements, CI/build
