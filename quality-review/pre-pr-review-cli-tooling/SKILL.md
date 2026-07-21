@@ -20,6 +20,10 @@ broader pre-PR remediation. Do not edit files.
   add a fake-`op` or fixture check that fails when the value remains concealed.
 - Raw pass-through argument handling as data, never via `eval` or shell parsing
   tricks.
+- Installer subprocess isolation: when wrappers call external installers or
+  package managers, verify staged execution redirects `HOME`, XDG-style config
+  roots, tool-specific config homes, caches, and generated side effects away
+  from the real user environment before promoting results.
 - Captured helper output: command substitutions and parsed stdout must contain
   only machine-readable return data. Prompts, progress text, menus, and
   operator hints belong on stderr or a terminal, with an interactive negative
@@ -44,7 +48,8 @@ broader pre-PR remediation. Do not edit files.
   around a third-party CLI, trace every installer, prerequisite, Makefile, and
   documented validation path for plain invocations of the same tool so
   `make install`, prereq checks, and operator smoke tests do not keep the old
-  execution assumptions.
+  execution assumptions. Parsed CLI output should be checked against the exact
+  supported output shapes, not only a hand-written or stale mock format.
 - Shell check-command fall-through: if a freshness, readiness, or stale-check
   loop ends with a `test`, `[` condition, or `&&` list, ensure the non-stale
   path exits explicitly with `exit 0` so a false final test does not turn a
@@ -53,8 +58,18 @@ broader pre-PR remediation. Do not edit files.
   start services when the documented contract is to `exec` against an
   already-running service; keep lifecycle setup separate unless the repo
   explicitly documents auto-start behavior.
+- Recovery and reauthentication commands that replace complete preferences or
+  do not persist flags must reconstruct every current non-default setting or
+  use a partial-update command. Test a configured-state path, and reserve reset
+  semantics for explicit destructive intent.
 - Idempotent install, uninstall, cleanup, and recovery behavior that preserves
-  user data unless explicit destructive cleanup is requested.
+  user data unless explicit destructive cleanup is requested. For installers
+  with shared canonical payloads and per-tool fanout links, verify partial
+  uninstalls distinguish selected links, legacy direct installs, ownership
+  markers, and still-referenced shared payloads; dry-run cleanup output should
+  match apply-mode destructive effects. Copy-mode promotion should be atomic
+  enough that a failed copy leaves the previous canonical payload intact, and
+  chained fanout links should point through the intended canonical layer.
 - Host portability across macOS/BSD and Linux for commands used by operators.
 - Failure summaries: when scripts tail stderr for context, also extract and
   prefer the most recent actionable error lines (for example Homebrew `Error:`

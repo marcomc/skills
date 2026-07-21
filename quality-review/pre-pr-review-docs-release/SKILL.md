@@ -39,9 +39,10 @@ of a broader pre-PR remediation. Do not edit files.
 - Versioning language using `MAJOR.MINOR.PATCH` unless the repo documents a
   different scheme.
 - Examples and placeholders that are safe, non-private, and still deployable
-  when meant to be defaults. For executable examples, run or mentally parse the
-  command against the current CLI so strict validation flags include their
-  required companion arguments.
+  when meant to be defaults. For executable examples, evaluate the actual shell
+  assignment and expansion order; do not assume a command-prefix assignment
+  changes `$VAR` expansion in the same command. Check current CLI parsing too,
+  so strict validation flags include required companion arguments.
 - When a branch changes compatibility constraints (runtime versions, dependency
   bounds, or builder images), reconcile every public surface in one pass:
   dependency constraints (for example Composer), README requirements, CI/build

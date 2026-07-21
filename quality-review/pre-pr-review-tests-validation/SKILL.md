@@ -27,8 +27,13 @@ broader pre-PR remediation. Do not edit files.
   syntax or happy-path checks.
 - Host-probe and installer regressions should include sibling negative paths
   for optional tool present without matching hardware, multiple candidate
-  devices or interfaces, root-without-sudo execution, and interactive prompts
-  when stdout is captured for later parsing.
+  devices or interfaces, root-without-sudo execution, interactive prompts when
+  stdout is captured for later parsing, unknown targets, partial uninstall, and
+  dry-run/apply parity for shared payload cleanup. For installers that wrap
+  third-party CLIs, cover isolated staging homes, copy-versus-link modes, failed
+  copy preserving existing payloads, non-mutating dry-runs, parser output
+  variants from the real CLI, malformed metadata, filtered-out invalid names,
+  names containing spaces, and each supported shallow discovery topology.
 - Narrow validation commands for each finding plus the repo's standard gate when
   available.
 - Live-test safety: use explicit opt-in inputs and avoid touching production or

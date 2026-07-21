@@ -2,6 +2,17 @@
 
 All notable changes to this repository are tracked here.
 
+## [0.2.0] - 2026-07-21
+
+### Added
+
+- Expanded CLI and installer review guidance for isolated staging, safe cleanup,
+  atomic promotion, parser-shape checks, and recovery semantics.
+- Added configuration and data-flow checks for native override types, inert
+  defaults, shallow discovery topologies, and filter-before-validation order.
+- Strengthened documentation, security, and validation guidance for shell
+  expansion, credential exposure, negative-path coverage, and dry-run parity.
+
 ## [0.1.0] - 2026-06-13
 
 ### Added

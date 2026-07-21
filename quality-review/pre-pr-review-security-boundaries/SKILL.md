@@ -14,7 +14,10 @@ broader pre-PR remediation. Do not edit files.
   actions.
 - CSRF, origin, local-network, webhook, and inter-service trust boundaries.
 - Secret handling in templates, logs, examples, generated files, ignored files,
-  and CI or deployment variables.
+  process arguments, shell history, and CI or deployment variables. Operator
+  examples must not expand credentials into process arguments; prefer a secure
+  prompt or restrictive ephemeral file, remove it on every exit path, and add
+  negative proof for history, argv, log, and persistent-file exposure.
 - Generated configs or files containing host identity, local network facts,
   credentials, tokens, or other operator-specific values should be written
   atomically with restrictive permissions. Include a mode check when installer

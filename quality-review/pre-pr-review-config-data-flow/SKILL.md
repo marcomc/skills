@@ -12,6 +12,10 @@ slices of a broader pre-PR remediation. Do not edit files.
 
 - Every config key across load, write, validate, examples, docs, installers,
   generated files, and runtime use.
+- Structured overrides crossing CLI, wrapper, or serializer boundaries must
+  preserve native types. Do not assume `key=value` parsers coerce booleans,
+  numbers, nulls, or collections; prefer structured JSON or YAML input and
+  assert the effective type at the consuming runtime.
 - Config file parsers must treat values as data rather than shell. If a format
   documents variable expansion, require explicit expansion code and a negative
   regression proving command substitution or other shell syntax remains inert.
@@ -32,12 +36,15 @@ slices of a broader pre-PR remediation. Do not edit files.
   convert invalid values into defaults before the provider client or module
   argument validation can reject them.
 - Safe defaults versus private or local-only values, including ignored override
-  files and tracked placeholders.
+  files and tracked placeholders. Example configs that are installed as runtime
+  defaults should not contain enabled placeholder sources or unreachable values
+  unless the consuming command explicitly treats them as inert.
 - Schema, fixture, manifest, discovery payload, and generated-artifact drift.
   For generated artifacts, verify every supported output variant and marker
   path is included in discovery, reporting, and stale-check paths, including
   specialized filenames, nested instruction locations, and configured depth
-  limits.
+  limits. Shallow discovery modes should still cover every documented container
+  topology and should distinguish container directories from actual leaf items.
 - Placeholder recovery for generated-artifact checks must round-trip
   user-supplied or template-specific values without recovering derived defaults
   such as project names, paths, dates, or other values that should change when
@@ -46,6 +53,10 @@ slices of a broader pre-PR remediation. Do not edit files.
   stored representation and externally meaningful normalization. For generated
   public URLs, verify scheme, host, port, and path against the endpoint actually
   exposed in each environment, not only the canonical hostname.
+- Include/exclude filters should be applied before validating the remaining
+  effective names. Reject path separators, traversal, and empty path components,
+  but do not reject valid display names merely because they contain spaces if
+  the downstream format supports them.
 - JSON contracts where fields may be scalar-or-list (for example policy fields
   that accept either `"Action": "x"` or `"Action": ["x"]`): normalize shapes
   before membership checks; preserve parsed empty arrays as empty, not as raw
