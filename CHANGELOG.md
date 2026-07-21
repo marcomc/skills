@@ -12,6 +12,8 @@ All notable changes to this repository are tracked here.
   defaults, shallow discovery topologies, and filter-before-validation order.
 - Strengthened documentation, security, and validation guidance for shell
   expansion, credential exposure, negative-path coverage, and dry-run parity.
+- Synchronized the updated review profiles with their installed source-of-truth
+  copies to retain existing lifecycle, migration, and fixture-isolation checks.
 
 ## [0.1.0] - 2026-06-13
 
