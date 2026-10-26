@@ -3,6 +3,8 @@ name: update-agents-workflows
 description: Update AGENTS.md with newly discovered workflows and commands for any repository, using minimal evidence-based edits. Adds conservative TODO notes when uncertain instead of inventing guidance.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Update AGENTS Workflows
 
 Use this skill when the user asks to refresh `AGENTS.md` with newly discovered commands/workflows for any project type.

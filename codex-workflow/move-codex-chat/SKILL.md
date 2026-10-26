@@ -3,6 +3,8 @@ name: move-codex-chat
 description: Safely move a Codex chat from one existing project to another by updating local Codex metadata and backing up affected files first. Use when a chat appears under the wrong project in Codex Desktop, when a project was created after the chat started, when the user wants to move the current chat to another project, or when a chat title and project names must be resolved and corrected.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Move Codex Chat
 
 ## Overview

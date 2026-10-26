@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gmail Coupon Cataloguer"
+  short_description: "Catalogue Gmail offers and retain important purchase mail"
+  default_prompt: "Use $gmail-coupon-cataloguer to update my coupon database from the latest imported email day and clean up eligible promotional mail older than twelve months."

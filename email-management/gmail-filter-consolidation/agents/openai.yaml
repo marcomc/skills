@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gmail Filter Consolidation"
+  short_description: "Safely reduce duplicate Gmail filters"
+  default_prompt: "Use $gmail-filter-consolidation to audit my Gmail filters for safe consolidations."

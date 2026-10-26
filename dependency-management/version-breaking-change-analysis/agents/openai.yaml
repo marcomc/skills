@@ -1,0 +1,3 @@
+interface:
+  display_name: "Version Breaking Change Analysis"
+  short_description: "Assess upgrade breaking-change impact on a project"

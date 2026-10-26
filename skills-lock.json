@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "skills": {
+    "codex-pr-review-remediation-loop": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f57019ef6c74c9b7d07cc32a10a324fa490fffa500172ec738803be544545b83"
+    },
+    "codex-review-skill-autolearn": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "794544cf5e81e7bbb31223d07fa30e4ab96dd816b195787a7ccecd14efb3217f"
+    },
+    "pr-description-markdown": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "108d7f65910ba6c73d80f60dc91dc21ac4ee1686c72481d0e7be641128996547"
+    },
+    "pre-pr-review-backend-services": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "47fc0d78a0d1c15e4db7998eabd692add720aef49ab2707c70d44420bcbf4bfe"
+    },
+    "pre-pr-review-tests-validation": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "6ba7e9e53340dfc326d26f2c6a15ac4ef543a545a097adc8077a335f060daf52"
+    },
+    "review-coordinator": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f83b4dfce6c3c808d0116c978017c57cbf731881d211243180f4cf99be1ffd05"
+    },
+    "scoped-pre-pr-remediation": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "3aad4e5af4f398c30454f9bfa4dd13c791a5806ea4d348c58428032748da063a"
+    },
+    "stack-best-practices-review": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "434efee250b4f1610c9091fa7ab2cded0f7c5163830de31c6edb6d2ba13536cf"
+    },
+    "version-breaking-change-analysis": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "de876d3c928ff628009334b715dfaecf1f63a299a39cdfa571f4fbc9e5a006a8"
+    }
+  }
+}

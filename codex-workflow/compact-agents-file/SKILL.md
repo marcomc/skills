@@ -3,6 +3,8 @@ name: compact-agents-file
 description: Compact and improve project AI-agent instruction files while preserving their behavioral meaning. Use when the user asks to reduce tokens, remove repetition, compress, rewrite, refactor, or improve AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md, agents/openai.yaml guidance, or similar repository agent instructions without changing the rules' intended result.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Compact Agents File
 
 Compress agent instruction files so future agents spend fewer tokens and still

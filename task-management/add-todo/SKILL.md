@@ -3,6 +3,8 @@ name: add-todo
 description: Capture one or more user ideas and add them to the active project TODO artifact with a Propositions section. Use when the user asks to record, triage, or structure future work ideas into either a Markdown TODO file or a Kanban JSON file.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Add Todo
 
 ## Workflow

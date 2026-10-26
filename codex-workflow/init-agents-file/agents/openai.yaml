@@ -1,0 +1,4 @@
+---
+display_name: Init Agents File
+short_description: Generate project AGENTS.md files from reusable templates.
+default_prompt: Initialize or refresh this project's AGENTS.md from the template repository.

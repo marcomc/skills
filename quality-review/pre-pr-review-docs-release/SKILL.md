@@ -3,6 +3,8 @@ name: pre-pr-review-docs-release
 description: Reviews documentation, changelog, README, release notes, operator runbooks, versioning, and PR-readiness text before PR. Use when a pre-PR review area includes Markdown docs, README updates, changelogs, install or upgrade instructions, release metadata, examples, or operator-facing workflow changes.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Review Docs Release
 
 Use this as a report-only reviewer profile for documentation and release slices
@@ -36,6 +38,13 @@ of a broader pre-PR remediation. Do not edit files.
   optional description field or update it; if no parser/tooling exists, do not
   invent a cleanup finding for the suffix alone.
 - README table of contents when the README is materially changed.
+- Installation examples that invoke a newly installed bare command must put the
+  required default command directory on `PATH` before the first invocation, or
+  use the installed command's absolute path. Check that custom-prefix examples
+  verify through the matching command location.
+- Copy, export, fixture, and sanitization procedures must name the source and
+  destination mutation boundaries precisely. Do not call a read-only source
+  disposable when only the generated destination may be modified.
 - Release version synchronization: when a release version changes or a
   changelog heading becomes concrete or dated, verify the exact version across
   package manifests, runtime constants, bundle metadata, tracked lockfiles,
@@ -56,6 +65,9 @@ of a broader pre-PR remediation. Do not edit files.
   names, usernames, home paths, hostnames, IPs, or private command names.
   Describe real-project smoke evidence generically unless the project is
   intentionally public and relevant.
+- Runbooks must label expected output separately from observed validation.
+  Operational evidence should record the command, actual relevant result, and
+  follow-up action; placeholders are examples, not proof of deployment.
 - For GitHub release asset examples in docs, ensure `releases/download/<value>`
   uses a real tag (or switch to `releases/latest/download/...`) so copy-paste
   install commands do not point at non-existent assets.

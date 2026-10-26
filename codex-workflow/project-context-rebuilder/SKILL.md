@@ -3,6 +3,8 @@ name: project-context-rebuilder
 description: Rebuild project context quickly at the start of a new chat by scanning a repo for AGENTS.md, specs files, progress/status docs, TODO.md, CHANGELOG.md, and any referenced files/paths. Use when asked to bootstrap understanding of the current project or to load the canonical specs and progress artifacts before work.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Project Context Rebuilder
 
 ## Workflow

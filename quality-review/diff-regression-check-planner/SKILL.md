@@ -3,6 +3,8 @@ name: diff-regression-check-planner
 description: Analyze a branch diff and produce the exact regression checks, smoke tests, and validation commands that should run before merge. Use when the user wants a diff-aware test plan focused on changed contracts, entrypoints, generated artifacts, migrations, config, and user-facing behavior; report the plan only unless the user explicitly asks to execute it.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Diff Regression Check Planner
 
 Use this skill to turn a diff into a concrete validation plan. The goal is to answer: what exactly must be re-tested because of these changes, in what order, and with what confidence.
@@ -16,11 +18,23 @@ Use this skill to turn a diff into a concrete validation plan. The goal is to an
 
 This skill is not a replacement for code review. It is the validation planner that should sit beside code review.
 
+## Composed mode
+
+When `$review-coordinator` provides an assignment, preserve its exact scope,
+policy revision, dependency map and current evidence. Return only missing or
+invalidated validation requirements, concrete commands and dependency inputs;
+do not execute tests, start a review/remediation loop or repeat terminal learning.
+Map overlapping coverage to one check ID. An unchanged passing check does not
+need to be scheduled again under a different profile name. The coordinator
+retains all required repository gates and owns the final quality decision.
+
 ## Workflow
 
 ### 1. Scope the diff
 
-- Resolve the base branch and review `merge-base(base, HEAD)..HEAD`.
+- Preserve the supplied branch/commit/staged/unstaged scope. When no narrower
+  scope was requested, resolve the base and review `merge-base(base, HEAD)..HEAD`;
+  add requested working-tree changes rather than assuming that HEAD includes them.
 - Summarize the changed files by area: product code, tests, config, migrations, build scripts, CI, generated assets, docs, and developer tooling.
 - Note file moves, renames, and deletions because they often create missing-reference regressions.
 
@@ -230,8 +244,9 @@ When the repo is Python-first:
 ## Agent Learning Hook
 
 <!-- BEGIN RECORD AGENT LEARNING HOOK -->
-When this review workflow produces a real reusable finding, fix, regression, or
+For a standalone run that produces a real reusable finding, fix, regression or
 workflow correction, run `$record-agent-learning` before the final response.
+In composed mode return the lesson to the coordinator instead of capturing twice.
 Pass this skill name as `--source-skill`. Skip capture for clean/no-op reviews
 and one-off repository trivia.
 <!-- END RECORD AGENT LEARNING HOOK -->

@@ -3,6 +3,8 @@ name: chatgpt-import
 description: Import one or more ChatGPT desktop conversations into the current Codex task as an English, coding-ready summary. Use when the user wants prior ChatGPT research, design notes, debugging context, or project investigations brought into Codex for software work, especially by topic rather than exact chat title.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # ChatGPT Import
 
 Import useful knowledge from ChatGPT into the current Codex task in a format that is immediately useful for programming work.

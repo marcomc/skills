@@ -3,6 +3,8 @@ name: branch-qa-remediation
 description: Run a PR-style QA review on branch changes vs a base branch for any repository, produce meaningful remediation findings with file and line references, and output a markdown report/snippet that can be passed to Codex for applying fixes.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Branch QA Remediation
 
 Use this skill when the user wants a QA review of branch changes (like pre-PR) in any project, with actionable remediations and exact file/line references.

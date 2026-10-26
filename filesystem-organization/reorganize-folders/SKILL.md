@@ -3,6 +3,8 @@ name: reorganize-folders
 description: Safely analyze and reorganize an arbitrary directory tree into a cleaner taxonomy using only move and rename operations. Use when asked to audit folders, propose a new file tree, rename directories in a chosen language, infer the default naming language from first-level folder names, protect sync-managed folders, preview a proposed structure before applying it, generate a rollback plan, or restore a prior state from a rollback plan without deleting files.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Reorganize Folders
 
 ## Overview

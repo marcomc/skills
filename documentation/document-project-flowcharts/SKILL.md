@@ -3,6 +3,8 @@ name: document-project-flowcharts
 description: Use when the user asks to add or refresh Mermaid flowcharts across project documentation, README files, runbooks, config-backed workflow docs, or setup guides.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Document Project Flowcharts
 
 Add source-backed Mermaid flowcharts to project documentation so procedures are

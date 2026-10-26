@@ -3,6 +3,8 @@ name: init-python-cli-project
 description: Scaffold a new local Python CLI project under the user's Development workspace using the shared uv-based template, including README, AGENTS.md, Makefile, pyproject.toml, config example, tests, and standalone install flow. Use when the user asks to initialize, bootstrap, scaffold, or start a new Python CLI project.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Init Python CLI Project
 
 Use this skill when the user wants a new Python CLI project scaffolded from the

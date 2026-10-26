@@ -3,6 +3,8 @@ name: apply-liquid-glass-ui
 description: Use when refactoring the visual presentation of a graphical app UI toward Apple's modern Liquid Glass design language, including web apps, sites, iOS apps, macOS apps, HTML/CSS/JS frontends, SwiftUI, UIKit, AppKit, dashboards, forms, toolbars, cards, modals, inputs, and buttons, while preserving existing product logic and workflows.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Apply Liquid Glass UI
 
 ## Overview

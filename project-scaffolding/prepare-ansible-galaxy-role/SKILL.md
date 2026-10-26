@@ -3,6 +3,8 @@ name: prepare-ansible-galaxy-role
 description: Prepare a local standalone Ansible role repository for Ansible Galaxy publication. Use when the user asks to make an Ansible role publishable, Galaxy-ready, release-ready, or to audit role metadata, README, changelog, upgrade notes, and publication commands before publishing.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Prepare Ansible Galaxy Role
 
 ## Boundaries

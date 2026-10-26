@@ -1,0 +1,4 @@
+interface:
+  display_name: "H-D Riders Survey"
+  short_description: "Complete authorized H-D Riders surveys"
+  default_prompt: "Complete an authorized H-D Riders survey and verify its completion."

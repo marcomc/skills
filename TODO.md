@@ -10,7 +10,7 @@
 
 - Recheck all bundled skills for public-safe paths, names, and machine-specific assumptions.
 - Decide whether machine-local workflow skills should stay public or move to a private collection.
-- Add new skills only after confirming they are authored locally or intentionally forked.
+- Add first-party skills only with the `MARCOMC-SKILL` provenance marker; keep unmodified third-party skills outside the collection.
 
 ## Maintenance
 

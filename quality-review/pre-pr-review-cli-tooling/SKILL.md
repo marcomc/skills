@@ -3,6 +3,8 @@ name: pre-pr-review-cli-tooling
 description: Reviews CLI, shell, Makefile, helper script, installer, uninstall, and local developer-tooling diffs before PR. Use when a pre-PR review area includes shell scripts, Make targets, command wrappers, argument pass-through, install or teardown commands, local automation, or cross-platform host tooling.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Review CLI Tooling
 
 Use this as a report-only reviewer profile for CLI and local-tooling slices of a
@@ -74,6 +76,10 @@ broader pre-PR remediation. Do not edit files.
   explicitly return the child command status. Include a negative-path check for
   missing credentials or failing external CLIs when those checks gate release or
   CI readiness.
+- `runpy` dispatcher parity: when a wrapper executes a Python script with
+  `runpy.run_path`, restore direct-script sibling-import behavior by prepending
+  the absolute script directory to `sys.path`. Require a subprocess regression
+  from outside the repository.
 - Subprocess lifecycle: when command runners start new sessions, process
   groups, or nested child commands, verify timeout, `SIGTERM`,
   `KeyboardInterrupt`, parent exit, and outer watchdog paths reap every

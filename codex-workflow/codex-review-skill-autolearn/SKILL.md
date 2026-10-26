@@ -3,9 +3,11 @@ name: codex-review-skill-autolearn
 description: Learn from completed GitHub Codex review remediations by distilling actionable findings into compact generic rules, then directly refine the relevant local review and remediation skills without adding redundant guidance.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Codex Review Skill Autolearn
 
-Use this skill after a `codex-pr-review-remediation-loop` pass completes. Its
+Use this skill once after an integrated local or remote review run completes. Its
 job is to turn GitHub Codex findings into tighter local review skills so more
 issues are caught before the next PR is sent to GitHub.
 
@@ -21,28 +23,10 @@ Improve the local skill system by:
 
 ## Default targets
 
-Unless the repository or user requests otherwise, review these skills in this
-order of leverage:
-
-1. `pre-pr-review-gate`
-2. `max-findings-review`
-3. `diff-regression-check-planner`
-4. `branch-qa-remediation`
-5. `max-findings-relentless`
-6. the smallest relevant specialized reviewer profile:
-   `pre-pr-review-frontend`, `pre-pr-review-backend-services`,
-   `pre-pr-review-infra-runtime`, `pre-pr-review-security-boundaries`,
-   `pre-pr-review-tests-validation`, `pre-pr-review-docs-release`,
-   `pre-pr-review-config-data-flow`, `pre-pr-review-cli-tooling`,
-   `pre-pr-review-ci-actions`, or `pre-pr-review-agent-workflows`
-7. `stack-best-practices-review`
-8. `security-best-practices`
-9. `repo-publication-sanitizer`
-10. `code-quality-remediation`
-11. `codex-pr-review-remediation-loop`
-
-Do not edit every skill by default. Touch only the smallest set that materially
-improves prevention for the learned class.
+Prefer an executable regression or deterministic check in the owning project,
+then the smallest relevant specialist profile. Use `$review-coordinator` only
+for orchestration, routing or evidence-contract defects. Entry adapters should
+not accumulate domain checklists. Never update every skill for one lesson.
 
 ## Specialized Target Routing
 
@@ -73,17 +57,30 @@ Use `pre-pr-remediation-worker` only for lessons about edit-capable sub-agent
 coordination, scope containment, or worker reporting. Do not put report-only
 review heuristics there.
 
+For recurring PR drift, scope expansion, or review-loop termination errors,
+route the prevention rule to `$review-coordinator` and the detection rule to
+`codex-pr-review-remediation-loop` or the PR-description entrypoint as
+appropriate. Keep the contract finite: objective, non-goals, acceptance cases,
+and actionable-finding criteria must be explicit before a new review starts.
+
 ## Workflow
 
 ### 1. Collect the learning input
 
-Gather the completed remediation loop context:
+Gather the integrated terminal remediation context once. During intermediate
+batches, record candidate lessons in the coordinator ledger. Reuse that compact
+record at exit rather than rereading the full chat or repeatedly updating and
+reinstalling the same skills. Keep the active policy revision stable. An urgent policy repair requires an
+explicit run rebaseline and reconciliation of affected proofs; record the reason
+so the terminal handoff does not repeat it. Otherwise apply changes to the next run.
+
+Gather:
 
 - the actionable Codex findings,
 - the fixes that were applied,
 - the tests or probes that proved the fixes,
 - any sibling regressions found during remediation,
-- whether the final pass was clean, summary-only, or ended with accepted gaps.
+- the local `READY`/`NEEDS_WORK`/`BLOCKED` outcome and separate remote status.
 
 If the latest loop had no actionable findings, the skill may still conclude
 that no changes are needed and exit cleanly.
@@ -113,6 +110,8 @@ Before editing anything, inspect the current target skills and classify each
 learned class as one of:
 
 - `covered`: the rule already exists with adequate precision and emphasis;
+  investigate routing, missing evidence, or non-application instead of adding
+  another version of the rule;
 - `weak`: the rule exists but is too vague, too narrow, or in the wrong place;
 - `missing`: no suitable rule exists yet.
 
@@ -126,9 +125,13 @@ over:
 
 - adding a brand-new paragraph or checklist item.
 
-### 4. Edit in place with a compactness bias
+### 4. Improve prevention with a compactness bias
 
 When changes are needed:
+
+- first prefer an executable regression/check for a repeatable failure;
+- use the coordinator calibration reference to distinguish actual escapes from
+  speculative added coverage and retain missing usage metrics as unknown;
 
 - modify the smallest number of skills that will improve future prevention;
 - refine existing bullets before adding new ones;
@@ -144,9 +147,19 @@ If a finding teaches the same lesson to multiple skills, specialize each edit:
 - remediation loops should gain sharper post-fix verification or feedback rules,
 - orchestrators should gain sharper sequencing and gate conditions.
 
-### 5. Apply direct skill updates
+### 5. Apply source-first skill updates
 
-Edit the target `SKILL.md` files directly. Do not stop at a prose proposal.
+Before editing, resolve whether each active target is the owning source, a
+symlink, or an installed copy. When an owning repository exists:
+
+1. edit and validate the owning source;
+2. refresh the canonical installation through its documented installer;
+3. refresh downstream mirrors;
+4. verify source/install/fanout parity.
+
+Edit an active `SKILL.md` directly only when it is the canonical source. Treat
+installed-only changes as incomplete and non-durable. Do not stop at a prose
+proposal.
 
 When a finding is only locally specific and not clearly reusable, leave the
 skills unchanged rather than forcing a generic rule.
@@ -180,14 +193,14 @@ Return:
 - any classes that were intentionally left unchanged because the corpus already
   covered them,
 - confirmation that `markdownlint` passed on all changed skill files.
+- confirmation that owning sources and installed/fanout copies match.
 
 If no direct skill changes were warranted, say so explicitly and explain why.
 
 ## Agent Learning Hook
 
 <!-- BEGIN RECORD AGENT LEARNING HOOK -->
-When this review workflow produces a real reusable finding, fix, regression, or
-workflow correction, run `$record-agent-learning` before the final response.
-Pass this skill name as `--source-skill`. Skip capture for clean/no-op reviews
-and one-off repository trivia.
+When the integrated run produces a reusable lesson, run `$record-agent-learning`
+once with this skill as `--source-skill`, or reference its existing capture.
+Tell the coordinator capture is complete. Skip clean/no-op reviews and trivia.
 <!-- END RECORD AGENT LEARNING HOOK -->
