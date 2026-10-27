@@ -124,10 +124,11 @@ Use `--full-depth` so the CLI scans every category directory.
 
 | Skill | Purpose |
 | --- | --- |
-| [`create-github-release`](release-github/create-github-release/SKILL.md) | Create or update a GitHub release from a local changelog. |
+| [`create-github-release`](release-github/create-github-release/SKILL.md) | Publish prepared notes through a shared same-host gate, optionally validating an `update-release` bound plan. |
 | [`github-repo-discoverability`](release-github/github-repo-discoverability/SKILL.md) | Improve repository metadata, topics, labels, README, and discoverability. |
 | [`pr-description-markdown`](release-github/pr-description-markdown/SKILL.md) | Generate a Markdown PR description from git diff and log. |
 | [`repo-publication-sanitizer`](release-github/repo-publication-sanitizer/SKILL.md) | Sanitize a repository before public release or PR publication. |
+| [`update-release`](release-github/update-release/SKILL.md) | Prepare scoped TODO, changelog and version metadata against fresh mainline, tags and release evidence. |
 
 ### Spec Workflow
 
@@ -281,20 +282,30 @@ flowchart LR
 
 ### Release and Publication Entrypoints
 
-This flow shows the release-oriented skills that hand off into the review and
-sanitization stack.
+`update-release` prepares a provisional scoped delta; final metadata receives
+review on its new HEAD before an authorized merge. Publication has its own
+approval. Install `create-github-release` alongside it for the bound-plan handoff;
+preparation remains independently usable. The publisher holds a common-Git-directory
+lock for cooperating worktrees/processes on one host. Its optional external
+adapter supports stronger coordination when a real shared gate already exists.
+See the [plan contract](release-github/update-release/references/planning.md) and
+[publication contract](release-github/create-github-release/references/guarded-publication.md).
 
 ```mermaid
 flowchart LR
     accTitle: Release and publication entrypoints
-    accDescr: Shows release and discoverability skills that delegate to review or sanitizer skills.
+    accDescr: Scoped preparation and final-head review precede verified merge and separately authorized guarded publication.
 
+    prepare["update-release"]
+    plan["Scoped metadata and provisional version"]
+    merged["Authorized, verified merge and target binding"]
     release["create-github-release"]
     discoverability["github-repo-discoverability"]
     gate["pre-pr-review-gate"]
     sanitizer["repo-publication-sanitizer"]
 
-    release --> gate
+    prepare --> plan --> gate --> merged
+    merged -->|"Separate release approval; held gate"| release
     discoverability --> sanitizer
 ```
 
