@@ -3,6 +3,8 @@ name: native-style-conformance-review
 description: Reviews a branch, diff, or changed files for conformance with the surrounding project's existing coding, testing, documentation, and tooling style. Use when the user asks whether new code looks like it was written by the same maintainer, avoids unfamiliar components, follows native conventions, or is stylistically defensible before PR review.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Native Style Conformance Review
 
 Use this as a report-only reviewer when the main question is whether a change

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minimal PR Diff"
+  short_description: "Trim a branch to the changes reviewers need"
+  default_prompt: "Use $minimal-pr-diff to reduce this branch to the smallest change that meets its requirements."

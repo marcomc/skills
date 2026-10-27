@@ -3,6 +3,8 @@ name: pre-pr-review-security-boundaries
 description: Reviews auth, authorization, secrets, trust boundaries, permission prompts, external delivery, and side-effect boundaries before PR. Use when a pre-PR review area includes privileged actions, credentials, tokens, web actions, telemetry, local device access, outbound notifications, or read-only paths that call capable helpers.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Review Security Boundaries
 
 Use this as a report-only reviewer profile for security-sensitive slices of a
@@ -15,6 +17,13 @@ broader pre-PR remediation. Do not edit files.
 - Security-relevant remote collections must match the complete expected shape;
   do not accept one safe member while an additional public, privileged, or
   mismatched member remains. Test mixed safe-and-unsafe collections.
+- Treat external responses as untrusted at both schema and identity boundaries:
+  validate each root, nested collection, and record before access, then require
+  the returned stable identity to match the requested resource before using its
+  state. Cover missing, null, scalar, wrong-identity, and malformed nested forms.
+- Before mutation, normalize, compare, and authenticate every configured read,
+  verification, and mutation endpoint. Prove mismatched or unauthenticated
+  endpoints stop before launch without exposing credentials or probe output.
 - Revalidate remote ownership and identity immediately before every mutation or
   acknowledgement, not only during initial preflight. Journal a unique creation
   intent before remote creation and reconcile it after ambiguous results so a
@@ -38,7 +47,9 @@ broader pre-PR remediation. Do not edit files.
 - Formula-capable spreadsheet, CSV, and office-document sinks must write
   untrusted strings as literal data rather than formulas. Verify both standard
   fields and dynamic header/value maps, reject writes to formula-owned columns,
-  and add a regression beginning with `=`, `+`, `-`, or `@`.
+  and add a regression beginning with `=`, `+`, `-`, or `@`. Type conversion must
+  follow the field contract rather than cell formatting; test leading-zero identifiers
+  in numerically formatted supplementary columns through write and read-back.
 - Multi-service mutations must persist a provenance-bearing journal before the
   first side effect, record durable outcomes and notification outbox entries
   before clearing it, and recover journals before sending success reports.

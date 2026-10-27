@@ -3,6 +3,8 @@ name: repo-publication-sanitizer
 description: Review and sanitize a repository before GitHub or public release by finding personal data, local-system details, hostnames, IP addresses, machine-specific paths, secrets, tokens, private endpoints, and environment-specific artifacts. Use before opening or publishing a public PR/repository, and when pre-PR review needs to prevent accidental disclosure; preserve only intentional public author/package/license identity in appropriate metadata contexts.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Repo Publication Sanitizer
 
 Use this skill before a repository, branch, PR, release, documentation set, or

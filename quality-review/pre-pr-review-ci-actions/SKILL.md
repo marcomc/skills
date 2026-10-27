@@ -3,6 +3,8 @@ name: pre-pr-review-ci-actions
 description: Reviews GitHub Actions, CI checks, workflow permissions, caches, artifacts, matrices, and log-derived failures before PR. Use when a pre-PR review area includes `.github/workflows`, GitHub Actions jobs, reusable workflows, check failures, CI scripts, build matrices, artifacts, caches, or workflow token permissions.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Review CI Actions
 
 Use this as a report-only reviewer profile for GitHub Actions and CI slices of a

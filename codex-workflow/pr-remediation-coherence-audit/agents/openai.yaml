@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Remediation Coherence Audit"
+  short_description: "Audit remediation scope and cumulative PR complexity"
+  default_prompt: "Audit this PR remediation batch for ledger consistency, sibling risks, duplication, obsolete code, and cumulative complexity. Return a structured PASS or REMEDIATE verdict without editing files."

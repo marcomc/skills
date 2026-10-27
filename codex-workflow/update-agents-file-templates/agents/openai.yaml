@@ -1,0 +1,4 @@
+---
+display_name: Update Agents File Templates
+short_description: Mine project AGENTS.md files and draft reusable template updates.
+default_prompt: Update the agents-file-templates-and-skills repository from reusable project rules.

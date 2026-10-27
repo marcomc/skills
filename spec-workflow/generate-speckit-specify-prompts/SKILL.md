@@ -3,6 +3,8 @@ name: generate-speckit-specify-prompts
 description: Generate structured, ready-to-paste prompt blocks for /speckit.specify. Use when the user asks for a Speckit specify prompt, wants a new spec session prompt, or needs to translate a feature idea into a Speckit-ready input.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Generate Speckit Specify Prompts
 
 ## Overview

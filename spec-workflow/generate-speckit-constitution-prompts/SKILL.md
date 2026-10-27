@@ -3,6 +3,8 @@ name: generate-speckit-constitution-prompts
 description: Generate structured, ready-to-paste prompt blocks for /speckit.constitution. Use when the user asks for a Speckit constitution prompt or wants to prepare a constitution update session.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Generate Speckit Constitution Prompts
 
 ## Overview

@@ -3,6 +3,8 @@ name: github-repo-discoverability
 description: Audit and improve GitHub repository discoverability by analyzing repository content, README, metadata, language, dependencies, comparable repositories, topics, labels, description, public-readiness signals, and community promotion channels. Use when the user asks to add or refresh GitHub topics, labels, descriptions, repository metadata, SEO, discoverability, promotion, or public-facing positioning for one repository or many repositories.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # GitHub Repo Discoverability
 
 Use this skill to make repositories easier to find and evaluate on GitHub

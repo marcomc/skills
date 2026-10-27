@@ -1,0 +1,3 @@
+interface:
+  display_name: "Comic Database Importer"
+  short_description: "Identify photographed comics and update a Drive XLSX database"

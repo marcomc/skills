@@ -1,0 +1,4 @@
+interface:
+  display_name: "World Coin and Banknote Cataloguer"
+  short_description: "Identify and catalogue photographed world currency"
+  default_prompt: "Use $world-coin-banknote-cataloguer to identify these photographed coins and banknotes, reconcile them with my collection sheet, and apply only verified updates."

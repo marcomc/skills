@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jev Gateway for Codex Desktop"
+  short_description: "Install Jev Gateway and connect Codex Desktop"
+  default_prompt: "Use $jev-gateway-codex-desktop to install and configure Jev Gateway for this computer."

@@ -3,6 +3,8 @@ name: speckit-kanban-sync
 description: Sync a newly generated `tasks.md` (from /speckit.tasks) into `TODO.kanban` Backlog with correct labels and Portable Kanban-safe schema. Use after each new specs session to create backlog cards from tasks.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Speckit Kanban Sync
 
 ## Overview

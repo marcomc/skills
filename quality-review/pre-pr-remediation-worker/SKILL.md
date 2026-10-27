@@ -3,6 +3,8 @@ name: pre-pr-remediation-worker
 description: Guides edit-capable sub-agents that fix assigned pre-PR or Codex-review findings under a main coordinator. Use when a remediation loop dispatches sub-agents to modify files, run targeted checks, and report changed paths while the main chat owns the full finding set and integration ledger.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Remediation Worker
 
 Use this as the shared profile for edit-capable remediation sub-agents. It is

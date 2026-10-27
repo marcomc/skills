@@ -3,6 +3,8 @@ name: code-quality-remediation
 description: Review a codebase for performance, duplication, dead code, leftover artifacts, file/module organization, and stack-specific standards, then report safe, concrete cleanup recommendations. Use when the user wants a non-breaking quality review focused on elegance, maintainability, idiomatic library usage, and safer structure; do not change code unless the user explicitly asks for remediation.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Code Quality Remediation
 
 Use this skill for cleanup-oriented engineering review work: identify optimization opportunities, duplication, stale code, weak module boundaries, poor file organization, and non-idiomatic stack usage, then report the safest high-value improvements without changing code by default.

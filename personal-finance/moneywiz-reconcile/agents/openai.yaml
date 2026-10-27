@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoneyWiz Reconciliation"
+  short_description: "Verify accounts and reconcile MoneyWiz efficiently"
+  default_prompt: "Use $moneywiz-reconcile with my private profile to verify this month’s accounts and reconcile source-backed transactions."

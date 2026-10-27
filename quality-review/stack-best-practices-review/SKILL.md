@@ -3,6 +3,8 @@ name: stack-best-practices-review
 description: Review code against the best practices of the detected language, framework, libraries, and file organization patterns using repository evidence first and primary documentation when a rule is version-sensitive. Use when the user wants a review focused on idiomatic stack usage, maintainability, architecture fit, and non-breaking modernization; report findings only unless remediation is explicitly requested.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Stack Best Practices Review
 
 Use this skill to audit code against the conventions of the stack already in use. The goal is to catch non-idiomatic or high-friction patterns before a PR is opened, especially when the code technically works but fights the language, framework, libraries, or project structure.
@@ -112,6 +114,10 @@ When the detected stack includes Python, check these areas deliberately:
 3. Respect the repo's quality gate:
    - prefer the repository's canonical gate command over ad hoc Python commands when judging readiness,
    - use the lint/type/test config already present as the operational standard.
+   - when strict typing meets an overloaded third-party API, use explicit
+     disambiguating arguments or a typed wrapper to select the intended
+     overload; do not hide the mismatch with a cast or suppression without
+     checking the runtime contract.
 4. Prefer clear module boundaries:
    - keep CLI parsing, web actions, page rendering, persistence, and shell/system helpers separated when the repo already organizes them that way.
 5. Be careful with appliance-style Python services:

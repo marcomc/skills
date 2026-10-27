@@ -3,6 +3,8 @@ name: pre-pr-review-agent-workflows
 description: Reviews agent instructions, Codex skills, AGENTS.md files, learning hooks, prompt workflows, and automation guidance before PR. Use when a pre-PR review area includes `AGENTS.md`, `SKILL.md`, prompt templates, agent-learning promotion, Codex automation instructions, or reusable workflow guidance.
 ---
 
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+
 # Pre-PR Review Agent Workflows
 
 Use this as a report-only reviewer profile for AI-agent instruction and skill
