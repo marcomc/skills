@@ -1,70 +1,84 @@
 ---
 name: create-github-release
-description: Use when the user asks to create, publish, cut, tag, or update a GitHub release from a local repository changelog.
+description: Use when the user explicitly authorizes creating or updating a GitHub release from prepared local changelog metadata, optionally through an update-release bound plan.
 ---
+
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
 
 # Create GitHub Release
 
-Create a git tag and a GitHub release from the changelog. This skill is generic
-and can be used in any repo with `CHANGELOG.md` following Keep a Changelog
-format.
+Publish already reviewed metadata under separate release authorization. A Ready
+event, clean review, prepared plan or merge approval grants no release authority.
+Use `$update-release` for TODO, notes and version preparation; this publisher
+does not edit project files or create commits.
 
-This is a lightweight publication skill. Do not run `$pre-pr-review-gate`,
-linting, tests, remediation loops, broad repository scans, or code-quality
-checks unless the user explicitly asks for them in the release request.
+## Select the publication mode
 
-## Inputs to Ask For
+Read [guarded publication](references/guarded-publication.md) before executing.
+Requires Python 3.9+, Git, authenticated `gh` with push/draft visibility and a
+clean branch whose HEAD equals its fresh upstream target. The default gate is
+an OS lock in the repository's common Git directory, shared across worktrees
+and cooperating publisher processes on the same host. It stays held from target
+selection through guards, mutations and readback. It does **not** exclude other
+machines or clients that bypass this publisher.
 
-Ask the user for these inputs if not provided:
+- **Bound plan:** install `update-release` alongside this skill. After verifying
+  the actual merge, bind the preparation plan to its exact target. Pass
+  `--plan`; the publisher itself invokes fresh plan checks at each mutation
+  boundary inside the gate. A preparation plan or mismatched repository, target,
+  version or changelog is rejected. Existing releases are preserved.
+- **No plan:** retain normal version inference from the first concrete stable
+  changelog section, or honor `--version`. Existing stable releases can be
+  updated under the explicit release request. Complete reads must prove whether
+  a release exists before selecting edit or create.
+- **Multiple hosts:** optionally provide an approved live `--gate-verifier`
+  and `--gate-lease` for an existing shared service. The verifier must establish
+  its lease, writer policy and target fence from that service. Flags, canned
+  JSON and a local lock do not establish cross-machine exclusion. No CI or
+  access-control infrastructure is installed by either skill.
 
-1. **Version** (optional): if omitted, use the latest concrete version section
-   from `CHANGELOG.md`
-2. **Mark as latest** (optional): default is `yes`; only ask when the user explicitly wants a non-latest release
+For the managed single-host pipeline, use the default gate. Report its boundary
+explicitly instead of requiring new infrastructure. If the project requires
+multi-host exclusion, use the verified external adapter or stop publication
+until that requirement is met. Preparation remains usable in either case.
 
-If the user does not specify a changelog path, assume `CHANGELOG.md` at repo root.
-
-## Workflow
-
-1. Confirm repository root with `git rev-parse --show-toplevel`.
-2. Ensure the working tree is clean (`git status --porcelain` must be empty).
-3. Fetch the tracked remote and ensure current `HEAD` exactly matches the branch
-   upstream. Stop if the branch is detached, has no upstream, is ahead, or is
-   behind.
-4. Parse `CHANGELOG.md`.
-5. Resolve the release version:
-   - If `--version` is provided, require that exact concrete changelog section.
-   - If no version is provided, use the latest concrete version section.
-6. Stop and report the missing changelog version if the resolved section does
-   not exist or has no release notes. Do not move `Unreleased` entries, edit
-   files, or create commits.
-7. Create an annotated git tag `v<version>` at current `HEAD` if it does not
-   already exist. If it exists, require it to point to current `HEAD`.
-8. Push the tag to the tracked remote if needed.
-9. Create or update the GitHub release using `gh`.
-10. Mark it as the latest release by default unless the user explicitly opts out.
-11. Verify publication with `gh release view v<version> --json
-    url,name,tagName,publishedAt`.
-
-## Command
-
-Use the bundled script:
+## Publish
 
 ```bash
-~/.agents/skills/create-github-release/scripts/create_release.py
+publisher="${HOME}/.agents/skills/create-github-release/scripts/create_release.py"
+python3 "$publisher" --plan /path/to/private/publish.json
 ```
 
-Optional overrides:
+Legacy no-plan use and explicit non-latest publication:
 
 ```bash
-~/.agents/skills/create-github-release/scripts/create_release.py --version 0.1.2
-~/.agents/skills/create-github-release/scripts/create_release.py --no-latest
+python3 "$publisher"
+python3 "$publisher" --version 1.0.1 --no-latest
 ```
 
-## Output
+The normal current release defaults to latest. A historical version below a
+published stable version defaults to non-latest; honor explicit `--latest` or
+`--no-latest`. Missing documented intermediate publications stop the flow rather
+than folding their notes into a newer version. Publish/account for those through
+the project policy before continuing; the helper has no continuity-bypass flag.
 
-- Return the release URL from `gh`.
-- Report the resolved version, tag, commit SHA, branch, and upstream used for
-  the release.
-- If any step fails, report the error and what to fix (dirty working tree, stale
-  branch, missing upstream, missing versioned changelog section, tag mismatch,
-  or missing `gh` authentication).
+The publisher verifies exact remote tag object **and** peeled commit before
+adoption. A conflicting annotation or commit is a stop. New tags push their
+immutable object ID with a non-force explicit refspec; an existing remote tag
+is never overwritten. Guarded runs allow only their journaled, read-back tag to
+be excluded from the saved baseline after push, then verify the newly created
+release without ignoring any unrelated change.
+
+## Failure and report
+
+A failed/incomplete release read means unavailable state, never absence. Edit
+failure never becomes creation. Failed writes and failed post-write readback
+retain a private intent journal and stop; do not automatically retry or roll
+back. A prior unresolved intent blocks another attempt for that repository/tag
+across local worktrees. Follow the read-only reconciliation procedure in the
+reference; external controllers must also retain unresolved outcomes.
+
+Return release URL, exact version/tag/SHA/upstream, latest status, serialization
+mode and journal path. For the default gate, state that cross-host/bypassing
+writers are outside its exclusion guarantee. Distinguish verified publication
+from attempted/unknown state; skill or gate success is not release permission.

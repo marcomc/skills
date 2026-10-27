@@ -2,6 +2,23 @@
 
 All notable changes to this repository are tracked here.
 
+## Unreleased
+
+### Added
+
+- Add `update-release` for scoped TODO, changelog and version preparation with
+  stable source IDs, issue links, optional chat coverage and fresh remote
+  mainline/tag/release evidence, including already reconciled feature branches.
+- Add a bound-plan handoff to `create-github-release` with a default publication
+  lock shared across same-host worktrees and processes, plus an optional live
+  external gate adapter for projects requiring multi-host exclusion.
+
+### Fixed
+
+- Stop ambiguous release reads and failed edits from falling back to creation;
+  retain uncertain write outcomes for read-only reconciliation. Verify exact
+  remote tag objects/peeled commits and preserve historical non-latest releases.
+
 ## [0.2.0] - 2026-07-21
 
 ### Added
