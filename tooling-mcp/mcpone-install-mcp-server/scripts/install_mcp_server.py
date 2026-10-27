@@ -83,6 +83,15 @@ def legacy_streamable_http_json_entry(
     return streamable_http_json_entry(app_name, url, headers)
 
 
+def streamable_http_json_entry_variants(
+    app_name: str, url: str, headers: Dict[str, str]
+) -> Tuple[Dict[str, object], ...]:
+    """Return current and compatible legacy JSON forms for DB-backed ownership."""
+    current = streamable_http_json_entry(app_name, url, headers)
+    legacy = legacy_streamable_http_json_entry(app_name, url, headers)
+    return (current,) if current == legacy else (current, legacy)
+
+
 def redact_endpoint(value: str) -> str:
     """Hide URL credentials and query/fragment values in command output."""
     try:
@@ -210,7 +219,7 @@ def prepare_streamable_http_json_configs(
 
         if existing_server is not None:
             old_name = existing_server["ZNAME"]
-            old_entry = legacy_streamable_http_json_entry(
+            old_entries = streamable_http_json_entry_variants(
                 agent["ZNAME"],
                 existing_server["ZURL"],
                 parse_blob_json(existing_server["ZHEADERS"], {}),
@@ -225,7 +234,7 @@ def prepare_streamable_http_json_configs(
             for old_config_name in list(servers):
                 if (
                     old_config_name.casefold() in unqualified_old_names
-                    and servers[old_config_name] == old_entry
+                    and servers[old_config_name] in old_entries
                 ):
                     del servers[old_config_name]
 
@@ -258,12 +267,12 @@ def prepare_streamable_http_json_configs(
                 existing_server is not None
                 and existing_server["ZTYPE"] == "STREAMABLE_HTTP"
             ):
-                old_entry = legacy_streamable_http_json_entry(
+                old_entries = streamable_http_json_entry_variants(
                     agent["ZNAME"],
                     existing_server["ZURL"],
                     parse_blob_json(existing_server["ZHEADERS"], {}),
                 )
-                old_entry_matches_target = servers[config_name] == old_entry
+                old_entry_matches_target = servers[config_name] in old_entries
             if not old_entry_matches_target:
                 raise RuntimeError(
                     f"Refusing to replace same-name config entry without matching ID alias: {config_path}#{config_key}.{config_name}"

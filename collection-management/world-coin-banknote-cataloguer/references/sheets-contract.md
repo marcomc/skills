@@ -80,6 +80,18 @@ Use one of these explicit actions:
 For banknotes, distinguish specimens by exact serial. For coins, match country,
 denomination, currency, year or series, and exact design or commemorative issue.
 
+The helper keeps one `decisions` entry per photographed specimen. For coin
+writes, use `coin_write_operations` as the executable write set; do not execute
+coin decisions separately. Each actionable coin decision's zero-based
+`coin_operation_index` points to its operation, and each operation includes the
+zero-based `decision_indexes` and available `specimen_ids` that it covers.
+Multiple specimens matching one existing row become one quantity write from
+the live quantity to the final projected quantity. Multiple specimens of one
+new exact issue become one insert operation whose `record.quantity` is the
+aggregate count. Distinct issues remain separate insert operations. These
+operations never invent a live row number for a new insert. `summary` counts
+specimen decisions; `coin_write_summary` counts coin write operations.
+
 Validate currency at the issue date rather than copying suspect legacy data. A
 known example is Ecuadorian 5 centavos dated 2000: it belongs to dollarized
 coinage and uses `$`, `USD`, and `Dollaro statunitense`, not ECS or sucre.
@@ -95,6 +107,10 @@ coinage and uses `$`, `USD`, and `Dollaro statunitense`, not ECS or sucre.
   content.
 - Apply quantity updates from the value read immediately before the write. If
   the value changed since planning, stop and recompute instead of overwriting.
+- Before each coin quantity operation, reread its target row and confirm its
+  current quantity equals `old_quantity`; write `new_quantity` once for the
+  aggregate operation. For inserts, write each `coin_write_operations` record
+  once, including its planned `quantity`.
 
 For requested historical backfills, read each row's country, denomination,
 currency, issue year, notes, and existing design data. Research the exact issue

@@ -65,6 +65,114 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(result["action"], catalogue_records.ACTION_UPDATE_QUANTITY)
         self.assertEqual(result["new_quantity"], 2)
 
+    def test_batch_coin_quantity_updates_project_per_existing_row(self) -> None:
+        first = {**coin(), "id": "COIN-1"}
+        second = {**coin(), "id": "COIN-2"}
+        different = {**coin("Maple Leaf"), "id": "COIN-3"}
+        result = catalogue_records.plan(
+            {
+                "album_year": 2026,
+                "coins": [first, second, different],
+                "existing_coins": [
+                    {**coin(), "row": 8, "quantity": 1},
+                    {**coin("Maple Leaf"), "row": 12, "quantity": 4},
+                ],
+            }
+        )
+
+        self.assertEqual(
+            [
+                (
+                    item["id"],
+                    item["existing_row"],
+                    item["old_quantity"],
+                    item["new_quantity"],
+                )
+                for item in result["decisions"]
+            ],
+            [
+                ("COIN-1", 8, 1, 2),
+                ("COIN-2", 8, 2, 3),
+                ("COIN-3", 12, 4, 5),
+            ],
+        )
+        self.assertEqual(
+            [
+                (
+                    item["existing_row"],
+                    item["old_quantity"],
+                    item["new_quantity"],
+                    item["specimen_ids"],
+                )
+                for item in result["coin_write_operations"]
+            ],
+            [(8, 1, 3, ["COIN-1", "COIN-2"]), (12, 4, 5, ["COIN-3"])],
+        )
+        self.assertEqual(
+            result["summary"][catalogue_records.ACTION_UPDATE_QUANTITY], 3
+        )
+        self.assertEqual(
+            result["coin_write_summary"][catalogue_records.ACTION_UPDATE_QUANTITY],
+            2,
+        )
+
+    def test_duplicate_new_coin_specimens_share_one_insert_operation(self) -> None:
+        result = catalogue_records.plan(
+            {
+                "album_year": 2026,
+                "coins": [
+                    {**coin(), "id": "NEW-1", "issue_name": ""},
+                    {**coin(), "id": "NEW-2"},
+                    {**coin("Maple Leaf"), "id": "NEW-3"},
+                ],
+                "existing_coins": [],
+            }
+        )
+
+        self.assertEqual(
+            [item["action"] for item in result["decisions"]],
+            [
+                catalogue_records.ACTION_INSERT,
+                catalogue_records.ACTION_INSERT,
+                catalogue_records.ACTION_INSERT,
+            ],
+        )
+        self.assertEqual(
+            [item["coin_operation_index"] for item in result["decisions"]],
+            [0, 0, 1],
+        )
+        self.assertEqual(len(result["coin_write_operations"]), 2)
+        operation = result["coin_write_operations"][0]
+        self.assertEqual(operation["action"], catalogue_records.ACTION_INSERT)
+        self.assertEqual(operation["quantity"], 2)
+        self.assertEqual(operation["record"]["quantity"], 2)
+        self.assertEqual(operation["record"]["issue_name"], "Regular issue")
+        self.assertEqual(operation["specimen_ids"], ["NEW-1", "NEW-2"])
+        self.assertNotIn("existing_row", operation)
+        self.assertEqual(result["coin_write_operations"][1]["quantity"], 1)
+        self.assertEqual(
+            result["coin_write_operations"][1]["specimen_ids"], ["NEW-3"]
+        )
+
+    def test_conflicting_names_for_same_new_coin_issue_require_review(self) -> None:
+        result = catalogue_records.plan(
+            {
+                "album_year": 2026,
+                "coins": [
+                    {**coin(), "id": "NEW-A", "issue_name": "Issue A"},
+                    {**coin(), "id": "NEW-B", "issue_name": "Issue B"},
+                ],
+                "existing_coins": [],
+            }
+        )
+
+        self.assertEqual(
+            [item["action"] for item in result["decisions"]],
+            [catalogue_records.ACTION_NEEDS_REVIEW] * 2,
+        )
+        self.assertEqual(result["coin_write_operations"], [])
+        self.assertEqual(result["coin_write_summary"], {})
+
     def test_optional_issue_name_does_not_create_duplicate_coin(self) -> None:
         existing = {**coin(), "issue_name": "", "row": 8, "quantity": 1}
         result = catalogue_records.classify_coin(coin(), [existing])

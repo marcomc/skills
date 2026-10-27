@@ -29,8 +29,16 @@ TEMPLATE_SECTION_PATTERN = re.compile(
 )
 PLACEHOLDER_TOKEN_PATTERN = re.compile(r"\$\{(?P<key>[A-Za-z_][A-Za-z0-9_]*)\}")
 PROJECT_DESCRIPTION_PATTERN = re.compile(r"^- Description:\s*(?P<value>.+)$", re.MULTILINE)
+PROJECT_NAME_PATTERN = re.compile(r"^- Project: `(?P<value>.*?)`$", re.MULTILINE)
+GLOBAL_POLICY_PATH_PATTERN = re.compile(
+    r"^Follow `(?P<value>.*?)` for canonical user-wide policy\.$", re.MULTILINE
+)
 DERIVED_PLACEHOLDERS = {"GENERATED_DATE", "PROJECT_NAME"}
-RECOVERABLE_BASE_PLACEHOLDERS = {"PROJECT_DESCRIPTION"}
+RECOVERABLE_BASE_PLACEHOLDERS = {
+    "GLOBAL_AGENTS_PATH",
+    "PROJECT_DESCRIPTION",
+    "PROJECT_NAME",
+}
 DEFAULT_BUDGET_WARNING_WORDS = 1_200
 
 AGENT_OUTPUTS = {
@@ -251,13 +259,18 @@ def recover_render_pairs(
     agent: str,
     output_name: str,
     current: str,
-) -> list[str]:
+) -> tuple[list[str], bool]:
     recovered: dict[str, str] = {}
+    project_name_match = PROJECT_NAME_PATTERN.search(current)
+    project_name = project_name_match.group("value") if project_name_match else None
     description_match = PROJECT_DESCRIPTION_PATTERN.search(current)
     if description_match:
         description = description_match.group("value").strip()
         if description and description != "${PROJECT_DESCRIPTION}":
             recovered["PROJECT_DESCRIPTION"] = description
+    global_path_match = GLOBAL_POLICY_PATH_PATTERN.search(current)
+    if global_path_match:
+        recovered["GLOBAL_AGENTS_PATH"] = global_path_match.group("value")
 
     keys = sorted(recoverable_placeholder_keys(template_repo, selected))
     sentinels = {key: f"__AGENTS_RENDER_PLACEHOLDER_{key}__" for key in keys}
@@ -269,11 +282,13 @@ def recover_render_pairs(
         re.DOTALL,
     )
     if not match:
-        return [f"{key}={value}" for key, value in recovered.items()]
+        if project_name is not None:
+            recovered["PROJECT_NAME"] = project_name
+        return [f"{key}={value}" for key, value in recovered.items()], False
     for key in sentinels:
         if sentinels[key] in rendered:
             recovered[key] = match.group(f"placeholder_{key}")
-    return [f"{key}={value}" for key, value in recovered.items()]
+    return [f"{key}={value}" for key, value in recovered.items()], True
 
 
 def recoverable_placeholder_keys(template_repo: Path, selected: list[str]) -> set[str]:
@@ -292,6 +307,22 @@ def template_placeholder_keys(template_repo: Path, selected: list[str]) -> set[s
         text = (template_repo / rel_path).read_text(encoding="utf-8")
         keys.update(match.group("key") for match in PLACEHOLDER_TOKEN_PATTERN.finditer(text))
     return keys
+
+
+def unrecovered_placeholders(
+    template_repo: Path,
+    selected: list[str],
+    recovered_pairs: list[str],
+    supplied_pairs: list[str],
+) -> list[str]:
+    """Find reachable placeholder values that are neither recovered nor explicit."""
+    template_keys = {
+        *RECOVERABLE_BASE_PLACEHOLDERS,
+        *template_placeholder_keys(template_repo, selected),
+    } - (DERIVED_PLACEHOLDERS - RECOVERABLE_BASE_PLACEHOLDERS)
+    recovered = {pair.split("=", 1)[0] for pair in recovered_pairs if "=" in pair}
+    supplied = {pair.split("=", 1)[0] for pair in supplied_pairs if "=" in pair}
+    return sorted(template_keys - recovered - supplied)
 
 
 def check_output(
@@ -323,9 +354,15 @@ def check_output(
         }
 
     selected = forced_types or generated_types(current) or detected
-    recovered = recover_render_pairs(project, template_repo, selected, agent, output_name, current)
+    recovered, recovery_complete = recover_render_pairs(
+        project, template_repo, selected, agent, output_name, current
+    )
     expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name)
-    status = "current" if normalize_generated(current) == normalize_generated(expected) else "out-of-sync"
+    status = (
+        "current"
+        if recovery_complete and normalize_generated(current) == normalize_generated(expected)
+        else "out-of-sync"
+    )
     return {
         "project": str(project),
         "output": str(output),
@@ -491,6 +528,7 @@ def main() -> int:
     output = project / output_name
     selected = forced
     recovered: list[str] = []
+    recovery_complete = True
     if output.exists():
         current = output.read_text(encoding="utf-8", errors="ignore")
         if GENERATED_MARKER not in current:
@@ -502,7 +540,29 @@ def main() -> int:
         else:
             if not selected:
                 selected = generated_types(current)
-            recovered = recover_render_pairs(project, template_repo, selected, args.agent, output_name, current)
+            recovered, recovery_complete = recover_render_pairs(
+                project, template_repo, selected, args.agent, output_name, current
+            )
+
+    if output.exists() and GENERATED_MARKER in current and not recovery_complete:
+        unrecovered = unrecovered_placeholders(
+            template_repo,
+            selected,
+            recovered,
+            args.sets,
+        )
+        if args.apply and unrecovered:
+            raise SystemExit(
+                f"Cannot safely refresh {output}: the generated file no longer matches its current templates, "
+                f"and values for placeholders {', '.join(unrecovered)} are missing. No file was changed. "
+                "Review and supply each replacement with --set KEY=VALUE, then rerun --apply."
+            )
+        if not args.apply and unrecovered:
+            print(
+                f"Warning: prior values for placeholders {', '.join(unrecovered)} may not be recoverable "
+                f"for {output}; apply requires explicit --set values.",
+                file=sys.stderr,
+            )
 
     content = render(project, template_repo, selected, [*recovered, *args.sets], args.agent, output_name)
 

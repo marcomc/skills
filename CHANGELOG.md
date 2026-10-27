@@ -4,6 +4,12 @@ All notable changes to this repository are tracked here.
 
 ## Unreleased
 
+### Fixed
+
+- Recognize current and legacy Gemini configurations on server updates,
+  accumulate matching coin specimens within a planned batch, and prevent
+  template refreshes from silently discarding configured placeholder values.
+
 ## [0.3.0] - 2026-10-26
 
 ### Added

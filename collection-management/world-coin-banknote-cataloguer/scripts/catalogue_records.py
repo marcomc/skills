@@ -281,18 +281,130 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
     """Build a deterministic, reviewable audit plan from structured records."""
     album_year = _require_integer(payload.get("album_year"), "album_year")
     existing_banknotes = payload.get("existing_banknotes", [])
-    existing_coins = payload.get("existing_coins", [])
+    projected_coins = [dict(row) for row in payload.get("existing_coins", [])]
     decisions = []
+    coin_groups: list[dict[str, Any]] = []
+    insert_groups: dict[tuple[str, ...], dict[str, Any]] = {}
+    update_groups: dict[tuple[Any, tuple[str, ...]], dict[str, Any]] = {}
     for record in payload.get("banknotes", []):
         decision = classify_banknote(record, existing_banknotes)
         decisions.append({"id": record.get("id"), "type": "banknote", **decision})
     for record in payload.get("coins", []):
-        decision = classify_coin(record, existing_coins)
+        decision = classify_coin(record, projected_coins)
         decisions.append({"id": record.get("id"), "type": "coin", **decision})
+        decision_index = len(decisions) - 1
+        action = decision["action"]
+        if action == ACTION_INSERT:
+            identity = _coin_identity(record)
+            issue_name = _fold(record.get("issue_name"))
+            group = insert_groups.get(identity)
+            if group is None:
+                group = {
+                    "action": ACTION_INSERT,
+                    "identity": identity,
+                    "issue_names": set(),
+                    "record": dict(record),
+                    "specimen_ids": [],
+                    "decision_indexes": [],
+                }
+                insert_groups[identity] = group
+                coin_groups.append(group)
+            if issue_name:
+                group["issue_names"].add(issue_name)
+                if not _fold(group["record"].get("issue_name")):
+                    group["record"] = dict(record)
+            specimen_id = record.get("id")
+            if specimen_id is not None:
+                group["specimen_ids"].append(specimen_id)
+            group["decision_indexes"].append(decision_index)
+            continue
+        if action != ACTION_UPDATE_QUANTITY:
+            continue
+
+        # Each decision represents one specimen. Project prior planned quantity
+        # updates so a later specimen targeting the same live row increments
+        # from the preceding planned value instead of re-proposing old + 1.
+        identity = _coin_identity(record)
+        matched = next(
+            (row for row in projected_coins if _coin_identity(row) == identity),
+            None,
+        )
+        if matched is not None:
+            matched["quantity"] = decision["new_quantity"]
+        update_key = (decision.get("existing_row"), identity)
+        group = update_groups.get(update_key)
+        if group is None:
+            group = {
+                "action": ACTION_UPDATE_QUANTITY,
+                "existing_row": decision.get("existing_row"),
+                "identity": identity,
+                "old_quantity": decision["old_quantity"],
+                "new_quantity": decision["new_quantity"],
+                "specimen_ids": [],
+                "decision_indexes": [],
+            }
+            update_groups[update_key] = group
+            coin_groups.append(group)
+        else:
+            group["new_quantity"] = decision["new_quantity"]
+        specimen_id = record.get("id")
+        if specimen_id is not None:
+            group["specimen_ids"].append(specimen_id)
+        group["decision_indexes"].append(decision_index)
+
+    for group in insert_groups.values():
+        if len(group["issue_names"]) > 1:
+            group["action"] = ACTION_NEEDS_REVIEW
+            for index in group["decision_indexes"]:
+                decisions[index]["action"] = ACTION_NEEDS_REVIEW
+                decisions[index]["reason"] = (
+                    "matching batch specimens have conflicting issue names"
+                )
+
+    coin_write_operations = []
+    for group in coin_groups:
+        if group["action"] == ACTION_NEEDS_REVIEW:
+            continue
+        if group["action"] == ACTION_INSERT:
+            row_record = dict(group["record"])
+            row_record["quantity"] = len(group["decision_indexes"])
+            operation = {
+                "type": "coin",
+                "action": ACTION_INSERT,
+                "record": row_record,
+                "quantity": row_record["quantity"],
+                "specimen_ids": group["specimen_ids"],
+                "decision_indexes": group["decision_indexes"],
+            }
+        else:
+            operation = {
+                "type": "coin",
+                "action": ACTION_UPDATE_QUANTITY,
+                "existing_row": group["existing_row"],
+                "identity": list(group["identity"]),
+                "old_quantity": group["old_quantity"],
+                "new_quantity": group["new_quantity"],
+                "specimen_ids": group["specimen_ids"],
+                "decision_indexes": group["decision_indexes"],
+            }
+        operation_index = len(coin_write_operations)
+        coin_write_operations.append(operation)
+        for index in group["decision_indexes"]:
+            decisions[index]["coin_operation_index"] = operation_index
     counts: dict[str, int] = {}
     for decision in decisions:
         counts[decision["action"]] = counts.get(decision["action"], 0) + 1
-    return {"album_year": album_year, "decisions": decisions, "summary": counts}
+    write_counts: dict[str, int] = {}
+    for operation in coin_write_operations:
+        action = operation["action"]
+        write_counts[action] = write_counts.get(action, 0) + 1
+    return {
+        "album_year": album_year,
+        "decisions": decisions,
+        "coin_write_operations": coin_write_operations,
+        "summary": counts,
+        "coin_write_summary": write_counts,
+    }
 
 
 def _load_json(path: str) -> dict[str, Any]:

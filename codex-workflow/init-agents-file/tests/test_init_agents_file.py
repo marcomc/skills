@@ -98,6 +98,70 @@ class InitAgentsFileTests(unittest.TestCase):
         self.assertIn("Use My custom project.", after)
         self.assertIn("Keep my local rule.", after)
 
+    def test_template_drift_blocks_apply_when_custom_values_cannot_be_recovered(self) -> None:
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text(
+            "# Python\n\nRun tests with `${TEST_COMMAND}` for ${PROJECT_DESCRIPTION}. "
+            "Lint config: ${MARKDOWNLINT_CONFIG}.\n",
+            encoding="utf-8",
+        )
+        initial = self.run_helper(
+            "--types", "python", "--set", "PROJECT_DESCRIPTION=Custom project",
+            "--set", "PROJECT_NAME=Custom Python Project",
+            "--set", "GLOBAL_AGENTS_PATH=../policy/AGENTS.md",
+            "--set", "TEST_COMMAND=make test-custom",
+            "--set", "MARKDOWNLINT_CONFIG=custom-markdownlint.json", "--apply",
+        )
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        output = self.project / "AGENTS.md"
+        original = output.read_bytes()
+        self.assertIn(b"make test-custom", original)
+
+        template.write_text(
+            "# Python\n\nRun the complete suite with `${TEST_COMMAND}` for ${PROJECT_DESCRIPTION}. "
+            "Lint config: ${MARKDOWNLINT_CONFIG}.\n",
+            encoding="utf-8",
+        )
+        refused = self.run_helper("--apply")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("placeholders MARKDOWNLINT_CONFIG, TEST_COMMAND are missing", refused.stderr)
+        self.assertIn("No file was changed", refused.stderr)
+        self.assertEqual(output.read_bytes(), original)
+
+        explicit = self.run_helper(
+            "--set", "TEST_COMMAND=make test-custom",
+            "--set", "MARKDOWNLINT_CONFIG=custom-markdownlint.json", "--apply",
+        )
+        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+        refreshed = output.read_text(encoding="utf-8")
+        self.assertIn("Run the complete suite with `make test-custom`", refreshed)
+        self.assertIn("- Description: Custom project", refreshed)
+        self.assertIn("- Project: `Custom Python Project`", refreshed)
+        self.assertIn("Follow `../policy/AGENTS.md`", refreshed)
+
+    def test_template_drift_with_recoverable_root_overrides_can_refresh(self) -> None:
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text("# Python\n\nUse ${PROJECT_DESCRIPTION}.\n", encoding="utf-8")
+        initial = self.run_helper(
+            "--types", "python", "--set", "PROJECT_DESCRIPTION=Custom project",
+            "--set", "PROJECT_NAME=Named Project", "--apply"
+        )
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        template.write_text(
+            "# Python\n\nUse the project description: ${PROJECT_DESCRIPTION}.\n",
+            encoding="utf-8",
+        )
+        refreshed = self.run_helper("--apply")
+        self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+        self.assertIn(
+            "Use the project description: Custom project.",
+            (self.project / "AGENTS.md").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "- Project: `Named Project`",
+            (self.project / "AGENTS.md").read_text(encoding="utf-8"),
+        )
+
     def test_specific_output_variant_refuses_unmarked_existing_file(self) -> None:
         output = self.project / "CLAUDE.md"
         original = b"User-authored Claude rules\n"

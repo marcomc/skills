@@ -179,6 +179,87 @@ class InstallerTests(unittest.TestCase):
         )
         self.assertEqual(len(list(self.root.glob("claude.json.bak-*"))), 2)
 
+    def test_same_id_updates_recognize_current_entry_shapes_for_json_agents(self) -> None:
+        apps = ("Claude", "Gemini CLI", "Antigravity")
+        config_paths = {app: self.root / f"{app.replace(' ', '-')}.json" for app in apps}
+        for config_path in config_paths.values():
+            config_path.write_text(
+                json.dumps({
+                    "mcpServers": {
+                        "unrelated": {"url": "https://other.example/mcp", "headers": {}}
+                    },
+                    "unrelatedRootSetting": {"preserve": True},
+                }) + "\n",
+                encoding="utf-8",
+            )
+        db_path = self.root / "McpOne.sqlite"
+        create_db(db_path, config_paths)
+        common = [
+            str(SCRIPT), "--name", "Monitor", "--id", "MON123",
+            "--server-url", "https://monitor.example/v1", "--header",
+            "Authorization=Bearer old-token", "--all-active-clusters",
+            "--sync-json-agent-configs", "--mcpone-db", str(db_path),
+        ]
+        with mock.patch.object(sys, "argv", common), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(INSTALLER.main(), 0)
+
+        initial_shapes = {
+            "Claude": {"type": "http", "url": "https://monitor.example/v1", "headers": {"Authorization": "Bearer old-token"}},
+            "Gemini CLI": {"httpUrl": "https://monitor.example/v1", "headers": {"Authorization": "Bearer old-token"}},
+            "Antigravity": {"serverUrl": "https://monitor.example/v1", "headers": {"Authorization": "Bearer old-token"}},
+        }
+        for app, config_path in config_paths.items():
+            self.assertEqual(
+                json.loads(config_path.read_text(encoding="utf-8"))["mcpServers"]["monitor"],
+                initial_shapes[app],
+            )
+
+        update = common.copy()
+        update[update.index("https://monitor.example/v1")] = "https://monitor.example/v2"
+        update[update.index("Authorization=Bearer old-token")] = "Authorization=Bearer new-token"
+        with mock.patch.object(sys, "argv", update), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(INSTALLER.main(), 0)
+        with mock.patch.object(sys, "argv", update), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(INSTALLER.main(), 0)
+
+        updated_shapes = {
+            "Claude": {"type": "http", "url": "https://monitor.example/v2", "headers": {"Authorization": "Bearer new-token"}},
+            "Gemini CLI": {"httpUrl": "https://monitor.example/v2", "headers": {"Authorization": "Bearer new-token"}},
+            "Antigravity": {"serverUrl": "https://monitor.example/v2", "headers": {"Authorization": "Bearer new-token"}},
+        }
+        for app, config_path in config_paths.items():
+            document = json.loads(config_path.read_text(encoding="utf-8"))
+            self.assertEqual(document["mcpServers"]["monitor"], updated_shapes[app])
+            self.assertEqual(
+                document["mcpServers"]["unrelated"],
+                {"url": "https://other.example/mcp", "headers": {}},
+            )
+            self.assertEqual(document["unrelatedRootSetting"], {"preserve": True})
+            self.assertEqual(len(list(self.root.glob(f"{config_path.name}.bak-*"))), 3)
+
+    def test_current_and_legacy_json_entry_shapes_are_both_database_matched(self) -> None:
+        headers = {"Authorization": "Bearer fixture-token"}
+        expected = {
+            "Claude": (
+                {"type": "http", "url": "https://fixture.example/mcp", "headers": headers},
+            ),
+            "Gemini CLI": (
+                {"httpUrl": "https://fixture.example/mcp", "headers": headers},
+                {"url": "https://fixture.example/mcp", "headers": headers},
+            ),
+            "Antigravity": (
+                {"serverUrl": "https://fixture.example/mcp", "headers": headers},
+            ),
+        }
+        for app_name, shapes in expected.items():
+            with self.subTest(app_name=app_name):
+                self.assertEqual(
+                    INSTALLER.streamable_http_json_entry_variants(
+                        app_name, "https://fixture.example/mcp", headers
+                    ),
+                    shapes,
+                )
+
     def test_wal_committed_data_is_present_in_sqlite_backup(self) -> None:
         db_path = self.root / "McpOne.sqlite"
         create_db(db_path, {})

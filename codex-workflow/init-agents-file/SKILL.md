@@ -39,7 +39,12 @@ The script preserves content between:
 
 When `--apply` targets an existing file without the generated marker, it stops
 without changing the file. Review or move that file before applying generated
-instructions. Dry-run output remains available for comparison.
+instructions. On a managed refresh, if template changes prevent recovery of
+placeholder values, `--apply` stops without changing the file until you supply
+each missing value with `--set KEY=VALUE`. Directly recorded project name,
+project description, and global policy path values are recovered separately.
+Changes with no unrecovered placeholders can still be applied. Dry-run output
+remains available for comparison and warns when explicit values are needed.
 
 ## Commands
 
