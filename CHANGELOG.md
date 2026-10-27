@@ -6,6 +6,13 @@ All notable changes to this repository are tracked here.
 
 ### Fixed
 
+- Carry explicit Codex remediation-loop authority through validated fixes,
+  publication, review requests and fixed-thread resolution until Code Review passes.
+- Recover stalled Codex PR reviews after 30 minutes without meaningful progress
+  with one recorded retry per head, then report a repeated stall and monitor quietly.
+- Deduplicate banknote specimens within each planned batch and detect
+  front/back ambiguity across complete assignments instead of local ties.
+
 - Recognize current and legacy Gemini configurations on server updates,
   accumulate matching coin specimens within a planned batch, and prevent
   template refreshes from silently discarding configured placeholder values.

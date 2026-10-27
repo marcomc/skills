@@ -58,6 +58,51 @@ class CatalogueTests(unittest.TestCase):
         result = catalogue_records.classify_banknote(banknote("INT4015078"), [existing])
         self.assertEqual(result["action"], catalogue_records.ACTION_NEEDS_REVIEW)
 
+    def test_duplicate_new_banknote_serial_is_skipped_within_batch(self) -> None:
+        result = catalogue_records.plan(
+            {
+                "album_year": 2026,
+                "banknotes": [
+                    {**banknote("NEW0001"), "id": "BANKNOTE-1"},
+                    {**banknote("NEW0001"), "id": "BANKNOTE-2"},
+                ],
+                "existing_banknotes": [],
+            }
+        )
+
+        self.assertEqual(
+            [item["action"] for item in result["decisions"]],
+            [catalogue_records.ACTION_INSERT, catalogue_records.ACTION_SKIP_DUPLICATE],
+        )
+        self.assertEqual(result["decisions"][1]["batch_duplicate_of_index"], 0)
+        self.assertEqual(result["summary"][catalogue_records.ACTION_INSERT], 1)
+
+    def test_conflicting_new_banknote_metadata_invalidates_pending_insert(self) -> None:
+        result = catalogue_records.plan(
+            {
+                "album_year": 2026,
+                "banknotes": [
+                    {**banknote("NEW0002"), "id": "BANKNOTE-1"},
+                    {**banknote("NEW0002"), "id": "BANKNOTE-2"},
+                    {
+                        **banknote("NEW0002"),
+                        "id": "BANKNOTE-3",
+                        "denomination": 10,
+                    },
+                    {**banknote("NEW0002"), "id": "BANKNOTE-4"},
+                ],
+                "existing_banknotes": [],
+            }
+        )
+
+        self.assertEqual(
+            [item["action"] for item in result["decisions"]],
+            [catalogue_records.ACTION_NEEDS_REVIEW] * 4,
+        )
+        self.assertEqual(
+            result["summary"][catalogue_records.ACTION_NEEDS_REVIEW], 4
+        )
+
     def test_exact_coin_increments_quantity(self) -> None:
         result = catalogue_records.classify_coin(
             coin(), [{**coin(), "row": 8, "quantity": 1}]
@@ -282,6 +327,92 @@ class CatalogueTests(unittest.TestCase):
             for index in range(2)
         ]
         with self.assertRaises(ValueError):
+            catalogue_records.pair_sides(fronts, backs)
+
+    def test_pairing_accepts_globally_unique_assignment_despite_local_tie(self) -> None:
+        fronts = [
+            {
+                "id": "F1",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            },
+            {
+                "id": "F2",
+                "serial": "ABC001",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            },
+        ]
+        backs = [
+            {
+                "id": "B1",
+                "serial": "ABC001",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            },
+            {
+                "id": "B2",
+                "serial": "ABC002",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            },
+        ]
+
+        result = catalogue_records.pair_sides(fronts, backs)
+
+        self.assertEqual(
+            [(item["front_id"], item["back_id"]) for item in result],
+            [("F1", "B2"), ("F2", "B1")],
+        )
+
+    def test_pairing_rejects_multiple_equal_best_complete_assignments(self) -> None:
+        fronts = [
+            {
+                "id": f"F{index}",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            }
+            for index in range(2)
+        ]
+        backs = [
+            {
+                "id": f"B{index}",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            }
+            for index in range(2)
+        ]
+
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            catalogue_records.pair_sides(fronts, backs)
+
+    def test_pairing_supports_bounded_sixteen_object_batch(self) -> None:
+        fronts = [
+            {
+                "id": f"F{index}",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            }
+            for index in range(16)
+        ]
+        backs = [
+            {
+                "id": f"B{index}",
+                "country": "Canada",
+                "denomination": 5,
+                "series": 2013,
+            }
+            for index in range(16)
+        ]
+
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
             catalogue_records.pair_sides(fronts, backs)
 
 

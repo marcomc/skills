@@ -228,41 +228,38 @@ def pair_sides(
     evidence = [[_pair_evidence(front, back) for back in backs] for front in fronts]
 
     @cache
-    def solve(front_index: int, used_mask: int) -> tuple[int, tuple[int, ...]]:
+    def solve(front_index: int, used_mask: int) -> tuple[int, tuple[int, ...], int]:
         if front_index == len(fronts):
-            return 0, ()
+            return 0, (), 1
         best_score = -(10**9)
         best_pairs: tuple[int, ...] = ()
+        best_count = 0
         for back_index in range(len(backs)):
             if used_mask & (1 << back_index):
                 continue
             item = evidence[front_index][back_index]
             if item.contradiction or not _pair_is_sufficient(item):
                 continue
-            tail_score, tail_pairs = solve(
+            tail_score, tail_pairs, tail_count = solve(
                 front_index + 1, used_mask | (1 << back_index)
             )
-            total = item.score + tail_score
+            if not tail_count:
+                continue
+            evidence_score = item.score - (1 if "position" in item.signals else 0)
+            total = evidence_score + tail_score
             if total > best_score:
                 best_score = total
                 best_pairs = (back_index,) + tail_pairs
-        return best_score, best_pairs
+                best_count = tail_count
+            elif total == best_score:
+                best_count = min(2, best_count + tail_count)
+        return best_score, best_pairs, best_count
 
-    _, indexes = solve(0, 0)
+    _, indexes, assignment_count = solve(0, 0)
     if len(indexes) != len(fronts):
         raise ValueError("no contradiction-free complete pairing exists")
-    for front_index, back_index in enumerate(indexes):
-        selected = evidence[front_index][back_index]
-        selected_score = selected.score - (1 if "position" in selected.signals else 0)
-        equally_supported = 0
-        for item in evidence[front_index]:
-            if item.contradiction or not _pair_is_sufficient(item):
-                continue
-            score = item.score - (1 if "position" in item.signals else 0)
-            if score == selected_score:
-                equally_supported += 1
-        if equally_supported > 1:
-            raise ValueError("pairing is ambiguous without photograph position")
+    if assignment_count > 1:
+        raise ValueError("pairing is ambiguous without photograph position")
     result = []
     for front_index, back_index in enumerate(indexes):
         item = evidence[front_index][back_index]
@@ -280,15 +277,47 @@ def pair_sides(
 def plan(payload: dict[str, Any]) -> dict[str, Any]:
     """Build a deterministic, reviewable audit plan from structured records."""
     album_year = _require_integer(payload.get("album_year"), "album_year")
-    existing_banknotes = payload.get("existing_banknotes", [])
+    projected_banknotes = [dict(row) for row in payload.get("existing_banknotes", [])]
     projected_coins = [dict(row) for row in payload.get("existing_coins", [])]
     decisions = []
     coin_groups: list[dict[str, Any]] = []
     insert_groups: dict[tuple[str, ...], dict[str, Any]] = {}
     update_groups: dict[tuple[Any, tuple[str, ...]], dict[str, Any]] = {}
+    accepted_banknotes: dict[str, list[int]] = {}
+    conflicting_batch_serials: set[str] = set()
     for record in payload.get("banknotes", []):
-        decision = classify_banknote(record, existing_banknotes)
+        serial = _banknote_serial(record)
+        if serial in conflicting_batch_serials:
+            decision = {
+                "action": ACTION_NEEDS_REVIEW,
+                "reason": "batch contains conflicting metadata for this serial",
+            }
+        else:
+            decision = classify_banknote(record, projected_banknotes)
         decisions.append({"id": record.get("id"), "type": "banknote", **decision})
+        decision_index = len(decisions) - 1
+        if decision["action"] == ACTION_INSERT:
+            accepted_banknotes.setdefault(serial, []).append(decision_index)
+            projected_banknotes.append(dict(record))
+        elif decision["action"] == ACTION_NEEDS_REVIEW and serial in accepted_banknotes:
+            for related_index in accepted_banknotes[serial]:
+                decisions[related_index]["action"] = ACTION_NEEDS_REVIEW
+                decisions[related_index]["reason"] = (
+                    "batch contains conflicting metadata for this serial"
+                )
+            decisions[decision_index]["reason"] = (
+                "batch contains conflicting metadata for this serial"
+            )
+            conflicting_batch_serials.add(serial)
+        elif (
+            decision["action"] == ACTION_SKIP_DUPLICATE
+            and decision.get("existing_row") is None
+            and serial in accepted_banknotes
+        ):
+            decisions[decision_index]["batch_duplicate_of_index"] = (
+                accepted_banknotes[serial][0]
+            )
+            accepted_banknotes[serial].append(decision_index)
     for record in payload.get("coins", []):
         decision = classify_coin(record, projected_coins)
         decisions.append({"id": record.get("id"), "type": "coin", **decision})

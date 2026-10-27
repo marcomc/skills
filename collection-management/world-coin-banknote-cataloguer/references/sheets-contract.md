@@ -79,6 +79,11 @@ Use one of these explicit actions:
 
 For banknotes, distinguish specimens by exact serial. For coins, match country,
 denomination, currency, year or series, and exact design or commemorative issue.
+Within one planned batch, an exact repeated new banknote serial is skipped and
+its `batch_duplicate_of_index` points to the earlier specimen decision. If the
+same new serial has conflicting metadata, every decision for that serial is
+`NEEDS REVIEW`; none may be inserted until the conflict is resolved. These
+decision indexes identify entries in the plan, never live sheet rows.
 
 The helper keeps one `decisions` entry per photographed specimen. For coin
 writes, use `coin_write_operations` as the executable write set; do not execute

@@ -30,8 +30,8 @@ Read [github-provider.md](references/github-provider.md) for status anchors,
 current-head correlation, quota precedence and feedback classification. The
 adapter returns remote facts, not a code-quality verdict. Existing unresolved
 feedback takes precedence over starting another pass; an active pass needs one
-monitor. A missing reaction, an elapsed interval or a polling timeout is not
-permission to retrigger or to declare the review finished.
+monitor. Use the stale-pass recovery policy below for an elapsed interval;
+a missing reaction or polling timeout alone never proves completion.
 
 Treat `review_observation.phase`, `terminal` and `next_action` in detector
 output as the runner's state machine. Do not replace them with a generic
@@ -39,25 +39,44 @@ output as the runner's state machine. Do not replace them with a generic
 `clean_confirmation_pending` are non-terminal states; continue the prescribed
 observation or reconciliation. `feedback_ready` means start a complete closure
 batch now. Only `clean` and `closed` are terminal, and `closed` is not clean.
+If the detector cannot consume a provider summary, the explicit provider
+reconciliation below may establish `clean`: retain the raw detector result,
+record the verified evidence and derived phase separately in the same ledger,
+then reconcile local/pushed inputs. This narrow evidence-based transition does
+not allow silence, stale reactions or security-only results to override pending.
 
 | Detector decision | Adapter action |
 | --- | --- |
 | `fix_existing_feedback` | Collect all actionable current feedback and return it to the same coordinator |
 | `monitor_existing_pass` | Resume the existing pass with one compact monitor |
-| `post_codex_review` | Require local `READY`, publish permission, matching pushed inputs and a complete closure batch, then send one exact `@codex review` trigger |
+| `post_codex_review` | Require local `READY`, matching pushed inputs and a complete closure batch, then send one exact `@codex review` trigger |
 | `verify_clean_signal` | A reaction exists but its head is unproven; reconcile the recorded pass before accepting or requesting anything |
 | `clean_signal` | Reconcile local/remote HEAD and existing local proofs; finish only when both local and remote conditions hold |
 | `usage_limit_blocked` | Preserve state and report remote `blocked`; never report clean |
 | `review_closed` | Stop the loop and report whether closure happened with a proven clean current head; never push, retrigger or keep polling this PR |
 
-Review/remediation scope and Git/GitHub permissions remain those granted by the
-user. The adapter does not authorize commits, pushes, comments or thread closure.
-Complete authorized product/docs, PR title/body and readiness changes before
-the terminal remote review; subsequent edits invalidate affected evidence.
+## Completion authority
+
+An explicit request to run or complete this remediation loop authorizes the
+routine operations needed to obtain a clean current-head Codex Code Review:
+scoped fixes, tests and documentation, validated closure commits and pushes to
+the PR branch, literal review requests, resolution of verified fixed threads,
+and continued monitoring. Carry that authority through the same coordinator and
+subsequent closure batches; do not pause to ask permission to continue, commit,
+push, request review or resolve fixed feedback. The goal is a PR ready to merge
+with a proven clean Code Review, not merely a local fix or a configured monitor.
+
+Honor explicit user limits such as report-only, no push or no thread resolution.
+This completion authority excludes merging, release publication, deployment,
+unrelated changes and destructive operations. Actual access failures, quota or
+an unresolved scope decision remain explicit non-success outcomes; never invent
+success or bypass platform controls. Complete any separately requested PR
+metadata/readiness changes before terminal review; later edits invalidate the
+affected evidence.
 
 ## Bind the observed pass to its head
 
-Record the exact head and UTC start time when an authorized review is requested
+Record the exact head and UTC start time when a review is requested under the completion authority
 or when a new in-progress pass is directly observed on that unchanged head.
 Store this association in the coordinator ledger; after confirming the same head,
 pass `--review-head <full-sha> --review-start <recorded-iso-timestamp>` on detector
@@ -65,7 +84,7 @@ calls. Do not derive this record from commit dates or a later clean reaction.
 
 A head-bound review/summary can also establish identity. `verify_clean_signal`
 means an old reaction cannot yet be associated: inspect existing pass evidence.
-If no association exists and no review is active, request one fresh authorized
+If no association exists and no review is active, request one fresh
 pass after local `READY`, recording its head/start. Do not poll an unprovable clean
 forever, invent a start time or keep posting triggers. Commit creation time alone
 is not push time or evidence that the current head was reviewed.
@@ -108,9 +127,9 @@ ledger/docs bookkeeping. New independent findings from a later pass form the
 next normal snapshot; the number of review rounds alone never ends the loop.
 
 After the complete batch has passed its focused and integrated checks, the
-coordinator returns `READY` for its frozen closure head. After an authorized
+coordinator returns `READY` for its frozen closure head. After the validated
 push, refresh thread IDs and resolve only fixed feedback whose fix is present
-remotely, when resolution is authorized. Re-observe the anchor: if an automatic
+remotely, subject to any explicit user restriction. Re-observe the anchor: if an automatic
 review is already active, monitor it instead of posting another trigger.
 Otherwise request one pass for that closure head. If the coordinator reports
 `SUSPECTED` or `RECOVERY`, follow its convergence or recovery process before
@@ -136,13 +155,38 @@ pass has observed acknowledgement but no terminal result. A current textual
 clean summary without a bound clean anchor is `clean_confirmation_pending`:
 reconcile it before any new trigger.
 
-After 20 minutes without a terminal result, report the head, detector phase,
-latest observed bot activity and resume path. Continue or renew monitoring
-within authorization using an available monitor or thread heartbeat; do not
-abandon active work, duplicate triggers or turn silence into success. A monitor
-handoff must say which non-terminal phase remains, when it was last observed and
-that the next runner must re-run the detector before acting. Quota, operational
-failure and unresolved user choices keep explicit non-success states.
+### Recover a stale pass
+
+Default to a 30-minute inactivity threshold, configurable to 60 minutes at the
+user's request. Measure from the latest trigger or meaningful current-pass bot
+progress, whichever is newer. Repeated reads, an unchanged `running` card and
+old reactions do not reset the timer. Staleness is a recovery heuristic, not
+proof that the provider process failed or stopped.
+
+For `running` or `requested_unacknowledged` at the threshold, re-observe the
+exact open PR and unchanged head. Handle findings, quota, closure and clean
+signals first. Under the completion authority, with the published head's existing
+validation still applicable, send one literal `@codex review` recovery request
+on that same head, even when the old card still says `running`. No commit or
+push is needed. If an explicit user restriction prevents the request, report the concrete recovery action.
+
+Preserve the old pass in ledger history with the staleness evidence. Record the
+new trigger ID, UTC start, head, recovery count and last meaningful progress;
+rebind the sole monitor and any heartbeat prompt to that pass. A successful
+post proves a request, not cancellation of the old job or startup of the new
+one. On an uncertain POST outcome, reconcile the timeline before retrying.
+
+Allow one automatic stale-pass recovery per unchanged head. If the replacement
+also reaches the inactivity threshold, preserve remote `blocked`, notify the
+user once that the replacement is stalled. Continue quiet read-only monitoring
+under the completion authority, without asking permission to proceed or posting
+more triggers on that head. Fresh provider progress can resume the pass; quota,
+access failure or PR closure follows its explicit non-success handling. A new
+user instruction may establish a fresh recorded recovery allowance.
+
+Keep the monitor handoff explicit about its pending phase, observation time,
+current trigger/head and remaining recovery allowance. Use one quiet monitor;
+notify only on meaningful change, recovery, failure or required user action.
 
 ## Reconcile once
 
@@ -165,4 +209,4 @@ head and both statuses; the existing coordinator owns terminal learning once.
 The old `scripts/analyze_remediation_loop.py` and
 `scripts/prepare_remediation_audit.py` paths forward to `review-coordinator`.
 Their schemas and CLI contracts remain available there. They do not contain
-separate implementations or grant publication permission.
+separate implementations; the completion authority above governs publication.
