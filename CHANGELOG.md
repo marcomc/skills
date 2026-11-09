@@ -66,7 +66,8 @@ All notable changes to this repository are tracked here.
 
 - Recognize current and legacy Gemini configurations on server updates,
   accumulate matching coin specimens within a planned batch, and prevent
-  template refreshes from silently discarding configured placeholder values.
+  template refreshes from silently discarding configured placeholder values,
+  including saved legacy project names with unrecorded provenance.
 
 - Recover stalled Codex PR reviews after 30 minutes without meaningful progress
   with one recorded retry per head, then report a repeated stall and monitor quietly.

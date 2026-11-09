@@ -44,6 +44,10 @@ instructions. On a managed refresh, if template changes prevent recovery of
 placeholder values, `--apply` stops without changing the file until you supply
 each missing value with `--set KEY=VALUE`. Directly recorded project name,
 project description, and global policy path values are recovered separately.
+New files record whether their project name is directory-derived or an explicit
+override, including overrides equal to the current directory name. Only recorded
+derived names follow directory renames. Legacy files without name provenance
+retain the saved name as an override; supply `--set PROJECT_NAME=VALUE` to change it.
 Changes with no unrecovered placeholders can still be applied. Dry-run output
 remains available for comparison and warns when explicit values are needed.
 

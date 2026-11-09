@@ -161,7 +161,21 @@ def template_map(manifest: dict) -> dict[str, str]:
     return {item["id"]: item["path"] for item in manifest.get("project_types", [])}
 
 
-def render(project: Path, template_repo: Path, forced_types: list[str], pairs: list[str], agent: str, output_name: str) -> str:
+def project_name_origin(current: str | None, pairs: list[str]) -> str:
+    if any(pair.split("=", 1)[0] == "PROJECT_NAME" for pair in pairs):
+        return "override"
+    if current is None:
+        return "derived"
+    header = current.partition("## Project Context")[0].splitlines()
+    derived = "<!-- project-name-derived -->" in header
+    override = "<!-- project-name-override -->" in header
+    if derived and override:
+        raise SystemExit("Ambiguous project-name provenance. No file was changed; review the conflicting markers.")
+    # Legacy files did not record provenance, so retain their saved value.
+    return "derived" if derived else "override"
+
+
+def render(project: Path, template_repo: Path, forced_types: list[str], pairs: list[str], agent: str, output_name: str, name_origin: str | None = None) -> str:
     manifest = load_manifest(template_repo)
     detected = forced_types or detect_types(project, manifest)
     always = manifest.get("merge", {}).get("always_include", [])
@@ -188,8 +202,8 @@ def render(project: Path, template_repo: Path, forced_types: list[str], pairs: l
         "## Project-Type Overlays",
         "",
     ]
-    if values["PROJECT_NAME"] != project.name:
-        output.insert(3, "<!-- project-name-override -->")
+    origin = name_origin or project_name_origin(None, pairs)
+    output.insert(3, f"<!-- project-name-{origin} -->")
 
     for type_id in ordered:
         rel_path = paths.get(type_id)
@@ -270,8 +284,8 @@ def recover_render_pairs(
     project_name_match = PROJECT_NAME_PATTERN.search(current)
     project_name = project_name_match.group("value") if project_name_match else None
     if project_name is not None:
-        recovered["PROJECT_NAME"] = (project_name if "<!-- project-name-override -->" in current
-                                     else project.name)
+        recovered["PROJECT_NAME"] = (project.name if project_name_origin(current, []) == "derived"
+                                     else project_name)
     description_match = (PROJECT_DESCRIPTION_PATTERN.search(current)
                          if current.count("\n\n## Project-Type Overlays\n") == 1 else None)
     if description_match:
@@ -286,7 +300,8 @@ def recover_render_pairs(
     sentinel_pairs = [f"{key}={value}" for key, value in sentinels.items()]
     if project_name is not None:
         sentinel_pairs.append(f"PROJECT_NAME={project_name}")
-    rendered = render(project, template_repo, selected, sentinel_pairs, agent, output_name)
+    rendered = render(project, template_repo, selected, sentinel_pairs, agent, output_name,
+                      name_origin=project_name_origin(current, []))
     match = re.fullmatch(
         placeholder_pattern(normalize_generated(rendered), sentinels),
         normalize_generated(current),
@@ -378,7 +393,8 @@ def check_output(
     recovered, recovery_complete = recover_render_pairs(
         project, template_repo, selected, agent, output_name, current
     )
-    expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name)
+    expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name,
+                      name_origin=project_name_origin(current, pairs))
     status = (
         "current"
         if (recovery_complete or not unrecovered_placeholders(template_repo, selected, recovered, pairs))
@@ -551,6 +567,7 @@ def main() -> int:
     selected = forced
     recovered: list[str] = []
     recovery_complete = True
+    current = ""
     if output.exists():
         current = output.read_text(encoding="utf-8", errors="ignore")
         if GENERATED_MARKER not in current:
@@ -586,7 +603,8 @@ def main() -> int:
                 file=sys.stderr,
             )
 
-    content = render(project, template_repo, selected, [*recovered, *args.sets], args.agent, output_name)
+    content = render(project, template_repo, selected, [*recovered, *args.sets], args.agent, output_name,
+                     name_origin=project_name_origin(current if GENERATED_MARKER in current else None, args.sets))
 
     if args.apply:
         output.parent.mkdir(parents=True, exist_ok=True)

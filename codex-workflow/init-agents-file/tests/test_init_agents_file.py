@@ -241,6 +241,46 @@ class InitAgentsFileTests(unittest.TestCase):
                 self.assertEqual("<!-- project-name-override -->" in text, explicit)
                 self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
 
+    def test_legacy_project_names_are_preserved_during_refresh_and_rename(self) -> None:
+        for saved_name in ["Legacy custom name", None]:
+            for rename in [False, True]:
+                with self.subTest(name=saved_name, rename=rename):
+                    self.project = self.root / f"legacy-{saved_name}-{rename}"
+                    self.project.mkdir()
+                    name = saved_name or self.project.name
+                    arguments = ["--set", f"PROJECT_NAME={saved_name}"] if saved_name else []
+                    initial = self.run_helper("--types", "python", *arguments, "--apply")
+                    self.assertEqual(initial.returncode, 0, initial.stderr)
+                    output = self.project / "AGENTS.md"
+                    output.write_text(output.read_text().replace("<!-- project-name-override -->\n", "")
+                                      .replace("<!-- project-name-derived -->\n", ""))
+                    if rename:
+                        target = self.project.with_name(self.project.name + "-renamed")
+                        self.project.rename(target)
+                        self.project = target
+                    template = self.template_repo / "templates" / "python.md"
+                    template.write_text("# Python\n\nUpdated legacy guidance.\n")
+                    refreshed = self.run_helper("--apply")
+                    self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+                    text = (self.project / "AGENTS.md").read_text()
+                    self.assertIn(f"- Project: `{name}`", text)
+                    self.assertIn("<!-- project-name-override -->", text)
+                    self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
+
+    def test_explicit_name_equal_to_directory_remains_an_override_after_rename(self) -> None:
+        name = self.project.name
+        initial = self.run_helper("--types", "python", "--set", f"PROJECT_NAME={name}", "--apply")
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        renamed = self.project.with_name("renamed-project")
+        self.project.rename(renamed)
+        self.project = renamed
+        refreshed = self.run_helper("--apply")
+        self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+        text = (renamed / "AGENTS.md").read_text()
+        self.assertIn(f"- Project: `{name}`", text)
+        self.assertIn("<!-- project-name-override -->", text)
+        self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
+
     def test_specific_output_variant_refuses_unmarked_existing_file(self) -> None:
         output = self.project / "CLAUDE.md"
         original = b"User-authored Claude rules\n"
