@@ -19,7 +19,11 @@ All notable changes to this repository are tracked here.
 
 ### Changed
 
-- Require whole-contract coherence review and current source, installed-copy and consumer evidence before learning promotions count as integrated.
+## [0.4.0] - 2026-11-09
+
+### Added
+
+- Require whole-contract coherence review and current source, installed-copy and consumer evidence before learning promotions count as integrated. (LEARNING-01)
 - Compact the promotion entrypoints while preserving mapped coverage and existing approval boundaries.
 - Mirror `record-agent-learning` as the terminal capture entrypoint; its runtime remains separately installed.
 
