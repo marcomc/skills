@@ -1,0 +1,374 @@
+<div id="project-visual-brief">
+  <style>
+    #project-visual-brief { color: var(--foreground); }
+    #project-visual-brief .pb-heading { padding-inline-end: 92px; display: grid; gap: calc(var(--font-size-base) * .4); }
+    #project-visual-brief .pb-goal { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: calc(var(--font-size-base) * .65); }
+    #project-visual-brief .pb-goal-icon { padding-top: calc(var(--font-size-base) * .35); }
+    #project-visual-brief .pb-flow-heading { margin-top: calc(var(--font-size-base) * 1.5); display: grid; gap: calc(var(--font-size-base) * .3); }
+    #project-visual-brief .pb-graph { position: relative; padding: calc(var(--font-size-base) * 1.2) 16px; }
+    #project-visual-brief .pb-edges { position: absolute; inset: 0; pointer-events: none; }
+    #project-visual-brief .pb-edge { fill: none; stroke: var(--muted-foreground); stroke-width: 1.5; }
+    #project-visual-brief .pb-rows { position: relative; display: grid; gap: calc(var(--font-size-base) * 2.8); }
+    #project-visual-brief .pb-row { display: grid; gap: calc(var(--font-size-base) * 2.8); width: min(100%, 440px); margin-inline: auto; }
+    #project-visual-brief .pb-row[data-count="2"] { width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(var(--font-size-base) * 1.6); align-items: start; }
+    #project-visual-brief .pb-node { min-width: 0; }
+    #project-visual-brief .pb-summary { display: block; }
+    #project-visual-brief .pb-summary::-webkit-details-marker { display: none; }
+    #project-visual-brief .pb-summary::marker { content: ""; }
+    #project-visual-brief .pb-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: calc(var(--font-size-base) * .4) calc(var(--font-size-base) * .7); }
+    #project-visual-brief .pb-type, #project-visual-brief .pb-dimension-label, #project-visual-brief .pb-disclosure, #project-visual-brief .pb-support-title { display: inline-flex; align-items: center; gap: calc(var(--font-size-base) * .45); }
+    #project-visual-brief .pb-lifecycle { display: grid; gap: calc(var(--font-size-base) * .4); margin-top: calc(var(--font-size-base) * .8); }
+    #project-visual-brief .pb-lifecycle-row { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: start; gap: calc(var(--font-size-base) * .7); }
+    #project-visual-brief .pb-dimension-label { max-width: calc(var(--font-size-base) * 8); }
+    #project-visual-brief .pb-dimension-value { min-width: 0; overflow-wrap: anywhere; }
+    #project-visual-brief .pb-status-symbol { display: inline-flex; flex: 0 0 auto; color: var(--foreground); }
+    #project-visual-brief [data-state="running"] .pb-state .pb-status-symbol { color: var(--viz-series-1); }
+    #project-visual-brief [data-state="human"] .pb-state .pb-status-symbol { color: var(--viz-series-2); }
+    #project-visual-brief [data-state="done"] .pb-state .pb-status-symbol { color: var(--viz-series-3); }
+    #project-visual-brief [data-state="milestone"] .pb-state .pb-status-symbol { color: var(--viz-series-4); }
+    #project-visual-brief [data-state="blocked"] .pb-state .pb-status-symbol { color: var(--viz-series-5); }
+    #project-visual-brief .pb-title { display: block; font-weight: 500; margin-top: calc(var(--font-size-base) * .6); }
+    #project-visual-brief .pb-disclosure { margin-top: calc(var(--font-size-base) * .8); }
+    #project-visual-brief details[open] > .pb-summary .pb-chevron { transform: rotate(180deg); }
+    #project-visual-brief .pb-detail { margin-top: calc(var(--font-size-base) * 1); display: grid; gap: calc(var(--font-size-base) * .8); }
+    #project-visual-brief .pb-detail dt { font-weight: 500; }
+    #project-visual-brief .pb-detail dd { margin: calc(var(--font-size-base) * .2) 0 0; overflow-wrap: anywhere; }
+    #project-visual-brief .pb-detail dl { margin: 0; }
+    #project-visual-brief .pb-evidence { margin-top: calc(var(--font-size-base) * .6); overflow-wrap: anywhere; }
+    #project-visual-brief .pb-support { margin-top: calc(var(--font-size-base) * 1); }
+    #project-visual-brief .pb-support summary { padding-block: calc(var(--font-size-base) * .35); }
+    #project-visual-brief .pb-support-items { margin-top: calc(var(--font-size-base) * .6); display: grid; gap: calc(var(--font-size-base) * .7); }
+    #project-visual-brief .pb-coverage { margin-top: calc(var(--font-size-base) * 1.2); }
+    #project-visual-brief .pb-coverage p { margin-top: calc(var(--font-size-base) * .4); }
+    @media (max-width: 560px) {
+      #project-visual-brief .pb-row[data-count="2"] { grid-template-columns: minmax(0, 1fr); width: min(100%, 440px); gap: calc(var(--font-size-base) * 2.8); }
+      #project-visual-brief .pb-meta { display: grid; justify-content: start; }
+      #project-visual-brief .pb-lifecycle-row { grid-template-columns: minmax(0, 1fr); gap: calc(var(--font-size-base) * .2); }
+      #project-visual-brief .pb-dimension-value { padding-inline-start: calc(var(--font-size-base) * 1.6); }
+    }
+  </style>
+  <div class="pb-heading">
+    <div class="text-small text-muted" data-slot="context"></div>
+    <div class="pb-goal">
+      <span class="pb-goal-icon"><i data-lucide="target" aria-hidden="true"></i></span>
+      <div><div class="text-small" data-slot="goal-label"></div><h2 data-slot="goal"></h2></div>
+    </div>
+  </div>
+  <div class="pb-flow-heading"><h3 data-slot="flow-title"></h3><div class="text-small" data-slot="legend"></div></div>
+  <div class="pb-graph" role="group" data-slot="graph">
+    <svg class="pb-edges" aria-hidden="true"></svg>
+    <div class="pb-rows"></div>
+  </div>
+  <div data-slot="support"></div>
+  <details class="pb-coverage"><summary data-slot="coverage-label"></summary><p class="text-small" data-slot="coverage"></p></details>
+  <p class="sr-only" data-slot="accessible-summary"></p>
+  <script>
+    (() => {
+      const root = document.getElementById('project-visual-brief');
+      const brief = /* MODEL_START */ {
+  "key": "fictional-short-video",
+  "example": true,
+  "language": "en",
+  "context": "Short clip",
+  "exampleLabel": "Fictional example",
+  "goalLabel": "First useful result",
+  "goal": "A short video you can play",
+  "flowTitle": "What gets us there",
+  "legend": "Arrows: prerequisites · Details: read only",
+  "detailsLabel": "Details",
+  "nextLabel": "Next step",
+  "whyLabel": "Why it matters",
+  "chatLabel": "Source chat and runtime",
+  "evidenceLabel": "Evidence",
+  "coverageLabel": "Sources and coverage",
+  "coverage": "Fictional data for layout demonstration. No project has been audited and no worker chat is changed by this view.",
+  "accessibleSummary": "Fictional project. Audio is being prepared. The output format needs a user decision. Editing awaits audio. The first useful result is an exported, playable video. Script and images are ready; visual polish is proposed for later.",
+  "rows": [
+    [
+      "format",
+      "audio"
+    ],
+    [
+      "edit"
+    ],
+    [
+      "first"
+    ]
+  ],
+  "edges": [
+    [
+      "format",
+      "first"
+    ],
+    [
+      "audio",
+      "edit"
+    ],
+    [
+      "edit",
+      "first"
+    ]
+  ],
+  "nodes": [
+    {
+      "id": "format",
+      "kind": "decision",
+      "state": "human",
+      "typeLabel": "Your decision",
+      "title": "Choose the video format",
+      "stateLabel": "Needs you",
+      "next": "Confirm vertical for a phone, or horizontal for a larger screen, in the source chat.",
+      "why": "Unlocks the final export. Audio and editing can keep advancing.",
+      "chat": "Demo: Output format · idle",
+      "evidence": "Fictional user-decision example; no real chat reference.",
+      "developmentState": "not_applicable",
+      "executionDimensionLabel": "Decision"
+    },
+    {
+      "id": "audio",
+      "kind": "audio",
+      "state": "running",
+      "typeLabel": "Audio",
+      "title": "Prepare the narration",
+      "stateLabel": "In progress",
+      "next": "Finish the narration and check that it matches the script.",
+      "why": "The editing step needs a usable audio track.",
+      "chat": "Demo: Narration · running",
+      "evidence": "Fictional execution example; no real chat reference.",
+      "developmentState": "verified",
+      "developmentText": "Workflow tested",
+      "built": "The narration workflow has been checked in this fictional example.",
+      "buildRemaining": "Produce and check the current narration output."
+    },
+    {
+      "id": "edit",
+      "kind": "video",
+      "state": "waiting",
+      "typeLabel": "Video",
+      "title": "Combine voice and images",
+      "stateLabel": "Waiting for audio",
+      "next": "Use the finished narration and the prepared images to assemble one short sequence.",
+      "why": "Creates the complete sequence needed for the first export.",
+      "chat": "Demo: Editing · idle",
+      "evidence": "Fictional dependency example; no real chat reference.",
+      "developmentState": "implemented",
+      "developmentText": "Editor prepared",
+      "built": "An editing workflow exists in this fictional example.",
+      "buildRemaining": "Integrate and check the current audio/images on the first complete sequence."
+    },
+    {
+      "id": "first",
+      "kind": "milestone",
+      "state": "milestone",
+      "typeLabel": "First milestone",
+      "title": "Export and play the video",
+      "stateLabel": "Not reached yet",
+      "next": "Export the sequence in the confirmed format, then check playback and audio.",
+      "why": "Makes the first complete result usable, before optional visual refinements.",
+      "chat": "Demo: First playback · idle",
+      "evidence": "Fictional acceptance example; no real chat reference.",
+      "developmentState": "not_applicable",
+      "executionDimensionLabel": "Outcome"
+    },
+    {
+      "id": "base",
+      "kind": "document",
+      "state": "done",
+      "typeLabel": "Content",
+      "title": "Script and images ready",
+      "stateLabel": "Done",
+      "next": "Keep these inputs available for editing.",
+      "why": "The content foundation is already available.",
+      "chat": "Demo: Content · idle",
+      "evidence": "Fictional completed-work example; no real chat reference.",
+      "developmentState": "verified",
+      "developmentDimensionLabel": "Preparation",
+      "developmentText": "Inputs checked",
+      "built": "The fictional script and images have been checked.",
+      "buildRemaining": "No new preparation needed for these inputs."
+    },
+    {
+      "id": "polish",
+      "kind": "design",
+      "state": "later",
+      "typeLabel": "Visual polish",
+      "title": "Colors and transitions",
+      "stateLabel": "Proposed for later",
+      "next": "Revisit after the first video passes the playback check.",
+      "why": "In this fictional scope, these refinements improve presentation without unlocking the first playback.",
+      "chat": "Demo: Visual style · idle",
+      "evidence": "Fictional deferral proposal; no real chat reference.",
+      "developmentState": "planned",
+      "developmentText": "Not started",
+      "built": "Only a deferral proposal exists in this fictional example.",
+      "buildRemaining": "Design and implement refinements if selected after first playback."
+    }
+  ],
+  "support": [
+    {
+      "id": "ready",
+      "icon": "circle-check",
+      "title": "Already ready · script and images",
+      "ids": [
+        "base"
+      ]
+    },
+    {
+      "id": "later",
+      "icon": "clock-3",
+      "title": "Can wait · colors and transitions",
+      "ids": [
+        "polish"
+      ]
+    }
+  ],
+  "developmentLabel": "Development",
+  "executionLabel": "Execution",
+  "unknownDevelopmentLabel": "Not established",
+  "builtLabel": "What already exists",
+  "buildRemainingLabel": "What remains to finish"
+} /* MODEL_END */;
+      root.lang = brief.language;
+      const icons = { audio: 'mic', video: 'clapperboard', image: 'image', document: 'file-text', data: 'database', infrastructure: 'server', code: 'code-xml', validation: 'clipboard-check', decision: 'user-round', milestone: 'flag', design: 'paintbrush', unknown: 'circle-help' };
+      const developmentIcons = { planned: 'clipboard-list', building: 'hammer', partial: 'blocks', implemented: 'code-xml', verified: 'badge-check', unknown: 'circle-help', not_applicable: null };
+      const executionIcons = { running: 'timer', waiting: 'hourglass', blocked: 'octagon-pause', human: 'user-round', done: 'circle-check', later: 'clock-3', milestone: 'flag', unknown: 'circle-help' };
+      const svg = root.querySelector('.pb-edges');
+      const graph = root.querySelector('[data-slot="graph"]');
+      const rows = root.querySelector('.pb-rows');
+      const nodeMap = new Map(brief.nodes.map(node => [node.id, node]));
+      const wrappers = new Map();
+      const ns = 'http://www.w3.org/2000/svg';
+      const slot = name => root.querySelector(`[data-slot="${name}"]`);
+      const element = (tag, className, text) => {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text) el.textContent = text;
+        return el;
+      };
+      const icon = (name, className = '') => {
+        const el = element('i', className);
+        el.dataset.lucide = name;
+        el.setAttribute('aria-hidden', 'true');
+        return el;
+      };
+      const makeSvg = (tag, attrs) => {
+        const el = document.createElementNS(ns, tag);
+        Object.entries(attrs).forEach(([name, value]) => el.setAttribute(name, value));
+        return el;
+      };
+      const hydrateIcons = () => { if (window.lucide) window.lucide.createIcons({ attrs: { width: 16, height: 16 } }); };
+      const addDetail = (container, label, text) => {
+        if (!text) return;
+        const dl = element('dl'); dl.append(element('dt', '', label), element('dd', '', text)); container.append(dl);
+      };
+      const makeNode = id => {
+        const node = nodeMap.get(id);
+        if (!node) throw new Error(`Unknown brief activity: ${id}`);
+        const wrapper = element('div', 'pb-node');
+        wrapper.dataset.node = id;
+        wrapper.dataset.state = node.state;
+        const suppliedStage = node.developmentState;
+        const hasStage = Object.hasOwn(developmentIcons, suppliedStage);
+        const hasStageText = typeof node.developmentText === 'string' && node.developmentText.trim();
+        const development = hasStage && (suppliedStage === 'not_applicable' || hasStageText) ? suppliedStage : 'unknown';
+        wrapper.dataset.development = development;
+        const details = element('details', 'card');
+        details.dataset.disclosure = id;
+        const summary = element('summary', 'pb-summary cursor-interaction');
+        const meta = element('div', 'pb-meta');
+        const type = element('span', 'pb-type text-small');
+        type.append(icon(icons[node.kind] || icons.unknown), element('span', '', node.typeLabel));
+        meta.append(type);
+        const lifecycle = element('div', 'pb-lifecycle');
+        const dimension = (label, value, symbol, className) => {
+          const row = element('div', `pb-lifecycle-row ${className}`);
+          const caption = element('span', 'pb-dimension-label text-small');
+          const mark = element('span', 'pb-status-symbol'); mark.append(icon(symbol));
+          caption.append(mark, element('span', '', label));
+          row.append(caption, element('span', 'pb-dimension-value', value));
+          return row;
+        };
+        if (development !== 'not_applicable') {
+          const value = development === 'unknown' ? brief.unknownDevelopmentLabel : node.developmentText;
+          lifecycle.append(dimension(node.developmentDimensionLabel || brief.developmentLabel, value, developmentIcons[development], 'pb-development'));
+        }
+        lifecycle.append(dimension(node.executionDimensionLabel || brief.executionLabel, node.stateLabel, executionIcons[node.state] || executionIcons.unknown, 'pb-state'));
+        const disclosure = element('span', 'pb-disclosure text-small');
+        disclosure.append(element('span', '', brief.detailsLabel), icon('chevron-down', 'pb-chevron'));
+        summary.append(meta, element('strong', 'pb-title', node.title), lifecycle, disclosure);
+        const content = element('div', 'pb-detail');
+        addDetail(content, brief.builtLabel, node.built);
+        addDetail(content, brief.buildRemainingLabel, node.buildRemaining);
+        addDetail(content, brief.nextLabel, node.next);
+        addDetail(content, brief.whyLabel, node.why);
+        addDetail(content, brief.chatLabel, node.chat);
+        if (node.evidence) {
+          const evidence = element('details', 'pb-evidence text-small');
+          evidence.append(element('summary', 'cursor-interaction', brief.evidenceLabel), element('p', '', node.evidence));
+          content.append(evidence);
+        }
+        details.append(summary, content); wrapper.append(details);
+        wrappers.set(id, wrapper);
+        return wrapper;
+      };
+      [['context', brief.context], ['goal-label', brief.goalLabel], ['goal', brief.goal], ['flow-title', brief.flowTitle], ['legend', brief.legend], ['coverage-label', brief.coverageLabel], ['coverage', brief.coverage], ['accessible-summary', brief.accessibleSummary]].forEach(([name, value]) => { slot(name).textContent = value; });
+      if (brief.example && !brief.context.includes(brief.exampleLabel)) slot('context').textContent += ` · ${brief.exampleLabel}`;
+      graph.setAttribute('aria-label', brief.flowTitle);
+      brief.rows.forEach(ids => {
+        if (ids.length < 1 || ids.length > 2) throw new Error('Each primary row needs one or two activity IDs.');
+        const row = element('div', 'pb-row'); row.dataset.count = ids.length;
+        ids.forEach(id => row.append(makeNode(id))); rows.append(row);
+      });
+      brief.support.forEach(group => {
+        const details = element('details', 'pb-support');
+        details.dataset.disclosure = `support-${group.id}`;
+        const summary = element('summary', 'cursor-interaction');
+        const title = element('span', 'pb-support-title'); title.append(icon(group.icon), element('span', '', group.title)); summary.append(title);
+        const items = element('div', 'pb-support-items'); group.ids.forEach(id => items.append(makeNode(id)));
+        details.append(summary, items); slot('support').append(details);
+      });
+      const drawEdges = () => {
+        const bounds = graph.getBoundingClientRect();
+        const positions = new Map();
+        brief.rows.flat().forEach(id => {
+          const box = wrappers.get(id).getBoundingClientRect();
+          positions.set(id, { x: box.x - bounds.x, y: box.y - bounds.y, w: box.width, h: box.height });
+        });
+        svg.setAttribute('width', bounds.width); svg.setAttribute('height', bounds.height);
+        svg.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`); svg.replaceChildren();
+        const defs = makeSvg('defs', {});
+        const marker = makeSvg('marker', { id: 'pb-dependency-arrow', markerWidth: 8, markerHeight: 8, refX: 6, refY: 4, orient: 'auto' });
+        marker.append(makeSvg('path', { d: 'M1 1 L6 4 L1 7', fill: 'none', stroke: 'var(--muted-foreground)', 'stroke-width': 1.3 }));
+        defs.append(marker); svg.append(defs);
+        brief.edges.forEach(([from, to]) => {
+          const a = positions.get(from), b = positions.get(to);
+          if (!a || !b) throw new Error(`Dependency endpoint missing from primary map: ${from} -> ${to}`);
+          const x1 = a.x + a.w / 2, y1 = a.y + a.h + 3, x2 = b.x + b.w / 2, y2 = b.y - 5;
+          const obstruction = [...positions].some(([id, p]) => id !== from && id !== to && p.y >= y1 && p.y < y2 && x1 >= p.x - 8 && x1 <= p.x + p.w + 8);
+          const middle = y1 + (y2 - y1) / 2;
+          const side = x1 < bounds.width / 2 ? 5 : bounds.width - 5;
+          const d = obstruction ? `M${x1} ${y1} V${y1 + 12} H${side} V${y2 - 13} H${x2} V${y2}` : `M${x1} ${y1} V${middle} H${x2} V${y2}`;
+          svg.append(makeSvg('path', { d, class: 'pb-edge', 'marker-end': 'url(#pb-dependency-arrow)' }));
+        });
+      };
+      const applyState = state => {
+        const saved = state?.privateContent?.projectVisualBrief;
+        if (saved?.key !== brief.key || !Array.isArray(saved.open)) return;
+        root.querySelectorAll('[data-disclosure]').forEach(el => { el.open = saved.open.includes(el.dataset.disclosure); });
+      };
+      const save = () => {
+        if (!window.openai?.setWidgetState) return;
+        const open = Array.from(root.querySelectorAll('[data-disclosure][open]'), el => el.dataset.disclosure);
+        const activities = open.filter(id => nodeMap.has(id)).map(id => nodeMap.get(id).title);
+        window.openai.setWidgetState({ modelContent: { inspectedActivities: activities }, privateContent: { projectVisualBrief: { key: brief.key, open } } }).catch(() => {});
+      };
+      applyState(window.openai?.widgetState);
+      root.addEventListener('click', event => { if (event.target.closest('summary')) requestAnimationFrame(save); });
+      root.addEventListener('toggle', () => requestAnimationFrame(drawEdges), true);
+      window.addEventListener('openai:set_globals', event => { applyState(event.detail?.globals?.widgetState); drawEdges(); });
+      new ResizeObserver(drawEdges).observe(graph);
+      hydrateIcons(); drawEdges();
+      document.fonts.ready.then(drawEdges);
+    })();
+  </script>
+</div>

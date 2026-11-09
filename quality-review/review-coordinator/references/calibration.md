@@ -52,3 +52,10 @@ then. Missing telemetry never triggers an automatic cheaper policy.
 Apply policy changes to a subsequent run and retain the prior revision for
 comparison. No scheduler, automatic model downgrade or claimed financial savings
 is implied by collecting these records.
+
+During the existing periodic learning audit, inspect changed instruction paths
+and evidenced expensive/noisy checks. Compare the complete actually loaded path,
+including conditional references; lines or file count alone are not context cost.
+Retire duplicated coverage only with equivalent replacement evidence, and retain
+rare serious-failure protection. A lexical duplicate scan does not evaluate
+semantic usefulness, check effectiveness or historical execution cost.

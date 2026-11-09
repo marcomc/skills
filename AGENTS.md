@@ -40,6 +40,36 @@ This repository publishes reusable AI-agent skills for installation through
 - Do not add external skills unless they are intentionally forked or clearly
   attributed.
 
+## Release Backlog and Worktrees
+
+Automation and personalized instruction updates accumulate in the main checkout
+between releases. Treat existing staged, unstaged and untracked project work as
+release candidates; classify by provenance, dependencies and authorization, not
+by age or whether it originated in the current chat.
+
+- Inventory and snapshot file contents, hashes, branches, worktree owners and
+  active consumers before editing. Compare concurrent branches from their merge
+  base; an older baseline does not imply intentional deletions.
+- Reconcile the complete authorized backlog into one sibling release worktree.
+  Record every item's destination or exclusion reason; preserve untracked files,
+  unique commits and required evidence. Verify editor discovery before handoff.
+- Before source cleanup, recheck hashes and activity, prove reviewed coverage,
+  and verify that installed tools and automations no longer require the old
+  checkout contents. Preserve open-PR or active worktrees; retire only verified
+  redundant copies through Git after retaining required recovery evidence.
+- Prepare release metadata after reconciliation and validation. Present the
+  candidate for review; commits and remote publication require user authorization.
+
+## Coherent Promotion
+
+Before changing a skill from learnings, read the installed
+`consolidate-agent-learnings/references/coherence.md` contract. Refine the whole
+affected contract, preserve superior policy and required coverage, select local,
+peer or council review by scope, and retain current coherence plus distribution
+receipts before declaring integration. Reuse one coordinator; keep history in
+the learning store. If the contract is unavailable, resolve its owning learning
+repository before promotion.
+
 ## Public-Safe Content
 
 - Avoid absolute maintainer-machine paths such as `/Users/<name>/...` in tracked

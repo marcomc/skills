@@ -74,6 +74,11 @@ by itself authorize staging, commits, pushes, PRs, thread resolution or deployme
 The coordinator owns edits and integration; independent reviewers receive only
 their relevant contracts, raw artifacts and required evidence.
 
+For persistent state updates, reject pathname-based stale-lock reclamation when
+it can race another creator or reclaimer. Prefer an atomic kernel-managed lock
+whose ownership is released on process exit, and exercise held-lock timeout,
+reacquisition, and concurrent-update paths in regression coverage.
+
 Return the shared local status, actual scope, fixed/open defects, executed/reused
 checks and remaining optional suggestions. The coordinator runs terminal learning
 once; this entrypoint does not mutate policies or start a second capture.

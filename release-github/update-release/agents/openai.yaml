@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update Release"
+  short_description: "Prepare scoped release notes and guarded version plans"
+  default_prompt: "Use $update-release to prepare the next release metadata and check for stale version plans."

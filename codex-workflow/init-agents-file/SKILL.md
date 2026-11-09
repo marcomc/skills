@@ -3,7 +3,8 @@ name: init-agents-file
 description: Use when initializing or refreshing project AI-agent instruction files from reusable global and project-type templates
 ---
 
-<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" --> <!-- privacy_scan: allow -->
+<!-- Public author attribution required by the shared skills collection. -->
 
 # Init Agents File
 
@@ -43,6 +44,16 @@ instructions. On a managed refresh, if template changes prevent recovery of
 placeholder values, `--apply` stops without changing the file until you supply
 each missing value with `--set KEY=VALUE`. Directly recorded project name,
 project description, and global policy path values are recovered separately.
+New files record whether their project name is directory-derived or an explicit
+override, including overrides equal to the current directory name. Only recorded
+derived names follow directory renames. Legacy files without name provenance
+retain the saved name as an override; supply `--set PROJECT_NAME=VALUE` to change it.
+Explicit `--set` values take precedence over saved header values, which take
+precedence over values inferred from unchanged template sections. Conflicting
+section inferences without a saved header value require an explicit value for
+that key; unresolved conflicts stop before changing the file. Read-only `--check`
+returns `out-of-sync` with `recovery_conflict` details for these consumers, so
+collection reports can include every consumer without refreshing any file.
 Changes with no unrecovered placeholders can still be applied. Dry-run output
 remains available for comparison and warns when explicit values are needed.
 

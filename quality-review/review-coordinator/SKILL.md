@@ -161,10 +161,14 @@ defects, reused versus executed checks, remaining optional suggestions, and
 observed usage coverage. Use [publication.md](references/publication.md) when a
 release handoff or public output is in scope.
 
-Record learning candidates during work. After the outcome, consolidate once
-through `$codex-review-skill-autolearn` when appropriate. Prefer a regression
-test or deterministic check, then the smallest relevant profile; keep generic
-orchestration rules here. Do not mutate the active policy to manufacture a pass.
+Record candidate defects and execution friction with source references during
+work. After the outcome, consolidate once through `$codex-review-skill-autolearn`
+when appropriate. An explicitly requested Retro may independently enrich that
+same terminal record; it is optional and never starts after each batch. Reconcile
+candidates by mechanism before one capture per project/run/lesson-family, marking
+proposed versus already-applied changes and retaining verification references.
+Prefer an existing check, then a regression or the smallest relevant profile.
+Keep generic orchestration here. Do not mutate active policy to manufacture a pass.
 An urgent policy correction ends/rebaselines the run explicitly with affected
 proofs reconciled. Learning never reopens unchanged product review by itself.
 

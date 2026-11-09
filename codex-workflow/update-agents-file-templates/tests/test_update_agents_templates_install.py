@@ -9,8 +9,7 @@ from pathlib import Path
 import os
 
 
-REPOSITORY = Path(__file__).resolve().parents[3]
-INIT_SCRIPT = REPOSITORY / "codex-workflow" / "init-agents-file" / "scripts" / "init_agents_file.py"
+INIT_SCRIPT = Path(__file__).resolve().parents[2] / "init-agents-file" / "scripts" / "init_agents_file.py"
 UPDATE_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "update_agents_templates.py"
 
 

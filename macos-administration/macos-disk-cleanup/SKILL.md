@@ -35,6 +35,10 @@ The helper may clear NPM's default cache at `~/.npm`, eligible direct children o
 
 Before every deletion, the helper checks the target recursively for open handles and checks relevant owner processes. It skips `~/.cache/uv` while `uv` is active, `~/.cache/codex-runtimes` while Codex or ChatGPT is active, NPM cache while an NPM-compatible package manager is active, Xcode build output while Xcode build processes are active, and snapshot thinning while Time Machine services are active. This is a best-effort point-in-time guard: a process can start after the check, so the helper must still report the exact target it attempted to clean.
 
+`npm cache verify` can garbage-collect and is not an inventory command. Run it
+only after authorized NPM cleanup and activity checks; propagate failures and
+verify default and explicit dry-run paths with regression tests.
+
 It must not delete an entire container, group container, `Application Support`, `Documents`, downloaded books or podcasts, clipboard history, browser/web-app site data, ML models, Docker/VM storage, Mail, Photos, or a backup volume. It must not use `rm -rf` against `/`, `/System`, `/System/Volumes/Data`, or an unresolved wildcard.
 
 APFS purgeable space is normally local snapshot or cache storage. `tmutil thinlocalsnapshots / <bytes> 4` is the supported snapshot operation, but it removes local restore points; external Time Machine backups are not affected. Never delete APFS snapshots by guessed UUID.

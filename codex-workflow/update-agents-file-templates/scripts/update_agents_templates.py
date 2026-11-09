@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import fnmatch
 import importlib.util
 import json
@@ -399,33 +400,120 @@ def template_path_for_id(template_repo: Path, manifest: dict, template_id: str) 
 
 
 def append_learned_rule(template_text: str, candidate_rule: str) -> tuple[str, str]:
-    normalized_candidate = normalize_rule(candidate_rule)
-    existing_rules = [
-        normalize_rule(line.strip().removeprefix("- "))
-        for line in template_text.splitlines()
-        if line.strip().startswith("- ")
-    ]
-    if normalized_candidate in existing_rules:
+    """Detect a rule already covered by template prose; never mutate templates."""
+    normalized_candidate = normalize_coverage_text(candidate_rule.removeprefix("- ").strip())
+    if normalized_candidate and normalized_candidate in logical_rule_blocks(template_text):
         return template_text, "already-present"
+    return template_text, "requires-edit-plan"
 
-    bullet = candidate_rule.strip()
-    if not bullet.startswith("- "):
-        bullet = f"- {bullet}"
 
-    if LEARNED_RULES_HEADING in template_text:
-        lines = template_text.rstrip().splitlines()
-        for idx, line in enumerate(lines):
-            if line.strip() != LEARNED_RULES_HEADING:
-                continue
-            insert_at = idx + 1
-            if insert_at < len(lines) and not lines[insert_at].strip():
-                insert_at += 1
-            lines.insert(insert_at, bullet)
-            return "\n".join(lines) + "\n", "updated"
-        return template_text, "already-present"
+def normalize_coverage_text(text: str) -> str:
+    """Normalize wrapping and inline code without erasing rule semantics."""
+    return re.sub(r"\s+", " ", text.replace("`", "")).strip()
 
-    updated = template_text.rstrip() + f"\n\n{LEARNED_RULES_HEADING}\n\n{bullet}\n"
-    return updated, "updated"
+
+def logical_rule_blocks(text: str) -> set[str]:
+    """Return complete markdown bullet and paragraph blocks for exact comparison."""
+    blocks: set[str] = set()
+    current: list[str] = []
+
+    def save() -> None:
+        if not current:
+            return
+        block = " ".join(line.strip() for line in current)
+        block = re.sub(r"^(?:[-*+]\s+|\d+[.)]\s+)", "", block)
+        normalized = normalize_coverage_text(block)
+        if normalized:
+            blocks.add(normalized)
+        current.clear()
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            save()
+        elif re.match(r"^#{1,6}\s", stripped):
+            save()
+        elif re.match(r"^(?:[-*+]\s+|\d+[.)]\s+)", stripped):
+            save()
+            current.append(stripped)
+        elif current:
+            current.append(stripped)
+        else:
+            current.append(stripped)
+    save()
+    return blocks
+
+
+EDIT_PLAN_OPERATIONS = {"add", "refine", "merge", "replace", "relocate"}
+
+
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read_edit_plan(
+    plan_path: Path,
+    original: str,
+    draft_path: Path,
+    candidate_rule: str,
+) -> tuple[str, dict[str, str]]:
+    try:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Could not read edit plan JSON: {plan_path}: {exc}") from exc
+    required = {
+        "before_sha256", "replacement_file", "replacement_sha256", "operation",
+        "integrated_rule", "review_rationale", "draft_sha256", "candidate_rule",
+        "coverage_rationale",
+    }
+    missing = sorted(required - plan.keys()) if isinstance(plan, dict) else sorted(required)
+    if missing:
+        raise SystemExit(f"Edit plan is missing required fields: {', '.join(missing)}")
+    if plan["operation"] not in EDIT_PLAN_OPERATIONS:
+        raise SystemExit(f"Edit plan operation must be one of: {', '.join(sorted(EDIT_PLAN_OPERATIONS))}")
+    integrated_rule = str(plan["integrated_rule"]).strip()
+    rationale = str(plan["review_rationale"]).strip()
+    if not integrated_rule or not rationale:
+        raise SystemExit("Edit plan integrated_rule and review_rationale must be nonempty")
+    before_hash = sha256_text(original)
+    if plan["before_sha256"] != before_hash:
+        raise SystemExit("Edit plan before_sha256 does not match the current template")
+    draft_hash = sha256_file(draft_path)
+    if plan["draft_sha256"] != draft_hash:
+        raise SystemExit("Edit plan draft_sha256 does not match the current learning draft")
+    if normalize_coverage_text(str(plan["candidate_rule"])) != normalize_coverage_text(candidate_rule):
+        raise SystemExit("Edit plan candidate_rule does not match the approved learning draft")
+    coverage_rationale = str(plan["coverage_rationale"]).strip()
+    if not coverage_rationale:
+        raise SystemExit("Edit plan coverage_rationale must explicitly map candidate_rule to integrated_rule")
+
+    replacement_path = Path(plan["replacement_file"]).expanduser()
+    if not replacement_path.is_absolute():
+        replacement_path = plan_path.parent / replacement_path
+    try:
+        replacement = replacement_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SystemExit(f"Could not read edit-plan replacement_file: {replacement_path}: {exc}") from exc
+    if sha256_text(replacement) != plan["replacement_sha256"]:
+        raise SystemExit("Edit plan replacement_sha256 does not match replacement_file")
+    if privacy_notes(replacement):
+        raise SystemExit("Edit-plan replacement contains private or secret-shaped material")
+    if normalize_coverage_text(integrated_rule.removeprefix("- ")) not in logical_rule_blocks(replacement):
+        raise SystemExit("Edit-plan integrated_rule is not a complete rule block in replacement_file")
+    return replacement, {
+        "operation": plan["operation"],
+        "before_sha256": before_hash,
+        "replacement_sha256": sha256_text(replacement),
+        "review_rationale": rationale,
+        "integrated_rule": integrated_rule,
+        "draft_sha256": draft_hash,
+        "candidate_rule": candidate_rule,
+        "coverage_rationale": coverage_rationale,
+    }
 
 
 def apply_learning_upstream_draft(
@@ -434,6 +522,7 @@ def apply_learning_upstream_draft(
     draft_path: Path,
     *,
     apply: bool,
+    edit_plan: Path | None = None,
 ) -> dict[str, str]:
     draft = parse_learning_upstream_draft(draft_path)
     candidate_rule = draft["candidate_rule"].strip()
@@ -448,8 +537,20 @@ def apply_learning_upstream_draft(
 
     template_path = template_path_for_id(template_repo, manifest, draft["proposed_template"])
     original = template_path.read_text(encoding="utf-8")
-    updated, action = append_learned_rule(original, candidate_rule)
+    review: dict[str, str] = {}
+    _, action = append_learned_rule(original, candidate_rule)
+    if action == "already-present":
+        updated = original
+    else:
+        if edit_plan is None:
+            raise SystemExit("Novel learning requires --edit-plan JSON with a reviewed whole-template replacement")
+        updated, review = read_edit_plan(edit_plan, original, draft_path, candidate_rule)
+        action = "updated"
     if apply and updated != original:
+        if sha256_text(template_path.read_text(encoding="utf-8")) != sha256_text(original):
+            raise SystemExit("Template changed after edit-plan validation; regenerate the plan against the current template")
+        if review and sha256_file(draft_path) != review["draft_sha256"]:
+            raise SystemExit("Learning draft changed after edit-plan validation; regenerate the plan against the current draft")
         template_path.write_text(updated, encoding="utf-8")
     return {
         "action": action if apply else f"would-{action}",
@@ -458,6 +559,7 @@ def apply_learning_upstream_draft(
         "lesson_family": draft["lesson_family"],
         "proposed_template": draft["proposed_template"],
         "refresh_triggers": draft["refresh_triggers"],
+        **review,
     }
 
 
@@ -620,6 +722,7 @@ def main() -> int:
     parser.add_argument("--learning-upstream-summary", action="store_true")
     parser.add_argument("--out-of-sync-report", action="store_true")
     parser.add_argument("--apply-learning-draft", type=Path, default=None)
+    parser.add_argument("--edit-plan", type=Path, default=None)
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -632,6 +735,7 @@ def main() -> int:
             manifest,
             args.apply_learning_draft.expanduser().resolve(),
             apply=args.apply,
+            edit_plan=args.edit_plan.expanduser().resolve() if args.edit_plan else None,
         )
         if args.json:
             print(json.dumps(result, indent=2))

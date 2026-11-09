@@ -2,8 +2,6 @@
 
 ## Publication
 
-- Create the GitHub repository at `marcomc/skills`.
-- Push the initial `main` branch.
 - Verify remote discovery with `npx --yes skills@latest add marcomc/skills --list`.
 
 ## Curation

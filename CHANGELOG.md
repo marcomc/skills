@@ -4,18 +4,80 @@ All notable changes to this repository are tracked here.
 
 ## Unreleased
 
+## [0.4.0] - 2026-11-09
+
+### Added
+
+- Add `project-visual-brief` for read-only observation of a Codex project's
+  non-archived chats, active work, blockers and milestone priorities. Present
+  localized vertical Mermaid status flows with colored rectangles, explicit
+  states and a legend, plus optional interactive detail, refresh schedules and
+  handoff drafts. Include an accessible icon-based template that distinguishes
+  development readiness from execution, discloses observed activity, and separates
+  scoped refreshes from complete project-chat briefs.
+- Add the original `workflow-retrospective` for scoped task/chat retrospectives,
+  bounded evidence-based improvements, verified lesson capture and resumption,
+  with a lightweight decision about future retrospective value.
+- Add the locally authored `streamline-test-suite` with evidence-based test
+  retirement, consolidation and execution-frequency decisions, bounded fault
+  checks, measured savings and a sourced comparison of external alternatives.
+- Add `update-release` for scoped TODO, changelog and version preparation with
+  stable source IDs, issue links, optional chat coverage and fresh remote
+  mainline/tag/release evidence, including already reconciled feature branches.
+  Group scoped release notes without duplicate entries or empty subsections;
+  review final capabilities against the previous release so first-release notes
+  exclude internal development iterations.
+- Add a bound-plan handoff to `create-github-release` with a default publication
+  lock shared across same-host worktrees and processes, plus an optional live
+  external gate adapter for projects requiring multi-host exclusion. Validate
+  GitHub repository identity case-insensitively while preserving exact host
+  and tag identity. Retain draft release IDs and intended tags even when GitHub
+  assigns an `untagged-<hash>` page URL, without blocking unrelated publications.
+- Add `record-agent-learning` as a distribution entrypoint for verified lesson
+  capture with applied evidence and source-run identity; its runtime remains
+  a separate Agent Learning System dependency.
+
+### Changed
+
+- Reconcile automation-generated backlog into a single sibling release worktree,
+  preserving concurrent branch coverage and checking active consumers before cleanup.
+- Reduce promotion entrypoint repetition with unchanged conditional contracts,
+  complete coverage ledgers and independent policy/ergonomics review.
+
+- Make promotion a whole-contract refinement with proportionate independent
+  review, retained coverage and measured context cost; require coherence-bound
+  receipts instead of certifying distribution alone.
+
+- Verify learning integration through owning sources, complete installed skill
+  payloads and refreshed template consumers; reconcile stale-lock prevention and
+  cleanup dry-run safeguards across source and runtime copies.
+
+- Compact Auto Learn around source-linked findings and execution friction,
+  preserving report-only comparisons, conditional detail and one terminal capture.
+- Keep explicitly requested Retro optional; compare independent frozen-session
+  analyses and assess total reached context and check cost before adding controls.
+
 ### Fixed
 
 - Carry explicit Codex remediation-loop authority through validated fixes,
   publication, review requests and fixed-thread resolution until Code Review passes.
-- Recover stalled Codex PR reviews after 30 minutes without meaningful progress
-  with one recorded retry per head, then report a repeated stall and monitor quietly.
+
 - Deduplicate banknote specimens within each planned batch and detect
   front/back ambiguity across complete assignments instead of local ties.
 
 - Recognize current and legacy Gemini configurations on server updates,
   accumulate matching coin specimens within a planned batch, and prevent
-  template refreshes from silently discarding configured placeholder values.
+  template refreshes from silently discarding configured placeholder values,
+  including saved legacy project names with unrecorded provenance. Prefer explicit
+  and recorded values over template inference; refuse unresolved conflicts safely
+  while reporting every consumer with conflict details in read-only scans.
+
+- Recover stalled Codex PR reviews after 30 minutes without meaningful progress
+  with one recorded retry per head, then report a repeated stall and monitor quietly.
+
+- Stop ambiguous release reads and failed edits from falling back to creation;
+  retain uncertain write outcomes for read-only reconciliation. Verify exact
+  remote tag objects/peeled commits and preserve historical non-latest releases.
 
 ## [0.3.0] - 2026-10-26
 
