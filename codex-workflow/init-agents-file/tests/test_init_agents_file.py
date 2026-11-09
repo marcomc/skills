@@ -173,6 +173,38 @@ class InitAgentsFileTests(unittest.TestCase):
             (self.project / "AGENTS.md").read_text(encoding="utf-8"),
         )
 
+    def test_template_drift_preserves_multiline_description(self) -> None:
+        description = "first line\nsecond line"
+        initial = self.run_helper(
+            "--types", "python", "--set", f"PROJECT_DESCRIPTION={description}", "--apply"
+        )
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text("# Python\n\nUpdated guidance for ${PROJECT_DESCRIPTION}.\n")
+        refreshed = self.run_helper("--apply")
+        self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+        result = (self.project / "AGENTS.md").read_text()
+        self.assertIn(f"- Description: {description}\n\n## Project-Type Overlays", result)
+        self.assertIn(f"Updated guidance for {description}.", result)
+
+    def test_ambiguous_description_boundary_refuses_refresh_without_mutation(self) -> None:
+        description = "first line\n\n## Project-Type Overlays\nsecond line"
+        initial = self.run_helper(
+            "--types", "python", "--set", f"PROJECT_DESCRIPTION={description}", "--apply"
+        )
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        output = self.project / "AGENTS.md"
+        before = output.read_bytes()
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text("# Python\n\nUpdated guidance for ${PROJECT_DESCRIPTION}.\n")
+        refused = self.run_helper("--apply")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("PROJECT_DESCRIPTION", refused.stderr)
+        self.assertEqual(output.read_bytes(), before)
+        explicit = self.run_helper("--set", f"PROJECT_DESCRIPTION={description}", "--apply")
+        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+        self.assertIn(f"Updated guidance for {description}.", output.read_text())
+
     def test_specific_output_variant_refuses_unmarked_existing_file(self) -> None:
         output = self.project / "CLAUDE.md"
         original = b"User-authored Claude rules\n"

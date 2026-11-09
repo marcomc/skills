@@ -1,0 +1,4 @@
+interface:
+  display_name: "Streamline Test Suite"
+  short_description: "Prune redundant tests and preserve regression controls"
+  default_prompt: "Use $streamline-test-suite to audit test-suite cost and identify safe consolidation or removal with evidence for retained regression controls."

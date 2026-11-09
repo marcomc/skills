@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Retrospective"
+  short_description: "Turn task evidence into practical workflow improvements"
+  default_prompt: "Use $workflow-retrospective after the current task to review this chat, apply justified workflow improvements, retain reusable lessons, and resume authorized work."

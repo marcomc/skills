@@ -28,7 +28,10 @@ TEMPLATE_SECTION_PATTERN = re.compile(
     re.DOTALL,
 )
 PLACEHOLDER_TOKEN_PATTERN = re.compile(r"\$\{(?P<key>[A-Za-z_][A-Za-z0-9_]*)\}")
-PROJECT_DESCRIPTION_PATTERN = re.compile(r"^- Description:\s*(?P<value>.+)$", re.MULTILINE)
+PROJECT_DESCRIPTION_PATTERN = re.compile(
+    r"^- Description: (?P<value>.*?)\n\n## Project-Type Overlays\n",
+    re.MULTILINE | re.DOTALL,
+)
 PROJECT_NAME_PATTERN = re.compile(r"^- Project: `(?P<value>.*?)`$", re.MULTILINE)
 GLOBAL_POLICY_PATH_PATTERN = re.compile(
     r"^Follow `(?P<value>.*?)` for canonical user-wide policy\.$", re.MULTILINE
@@ -268,9 +271,10 @@ def recover_render_pairs(
     project_name = project_name_match.group("value") if project_name_match else None
     if project_name is not None:
         recovered["PROJECT_NAME"] = project_name
-    description_match = PROJECT_DESCRIPTION_PATTERN.search(current)
+    description_match = (PROJECT_DESCRIPTION_PATTERN.search(current)
+                         if current.count("\n\n## Project-Type Overlays\n") == 1 else None)
     if description_match:
-        description = description_match.group("value").strip()
+        description = description_match.group("value")
         if description and description != "${PROJECT_DESCRIPTION}":
             recovered["PROJECT_DESCRIPTION"] = description
     global_path_match = GLOBAL_POLICY_PATH_PATTERN.search(current)

@@ -91,18 +91,20 @@ Use `--full-depth` so the CLI scans every category directory.
 | --- | --- |
 | [`chatgpt-import`](codex-workflow/chatgpt-import/SKILL.md) | Import ChatGPT desktop conversations into Codex as coding-ready context. |
 | [`codex-pr-review-remediation-loop`](codex-workflow/codex-pr-review-remediation-loop/SKILL.md) | Close defect families, reuse verified audit evidence, and monitor GitHub Codex review. |
-| [`codex-review-skill-autolearn`](codex-workflow/codex-review-skill-autolearn/SKILL.md) | Distill completed Codex review remediations into reusable skill improvements. |
+| [`codex-review-skill-autolearn`](codex-workflow/codex-review-skill-autolearn/SKILL.md) | Learn from completed reviews and evidenced process friction with compact source improvements. |
 | [`compact-agents-file`](codex-workflow/compact-agents-file/SKILL.md) | Compact AI-agent instruction files while preserving intent. |
 | [`consolidate-agent-learnings`](codex-workflow/consolidate-agent-learnings/SKILL.md) | Consolidate bounded learnings through shared coherence, routing and integration contracts. |
-| [`record-agent-learning`](codex-workflow/record-agent-learning/SKILL.md) | Capture a terminal lesson once through the separately installed Agent Learning runtime. |
 | [`init-agents-file`](codex-workflow/init-agents-file/SKILL.md) | Initialize project agent-instruction files from the task, repository and available templates. |
 | [`jev-gateway-codex-desktop`](codex-workflow/jev-gateway-codex-desktop/SKILL.md) | Install Jev Gateway and configure Codex Desktop to route through it while preserving the existing ChatGPT login. |
 | [`move-codex-chat`](codex-workflow/move-codex-chat/SKILL.md) | Move a Codex chat between local project contexts safely. |
 | [`pr-remediation-coherence-audit`](codex-workflow/pr-remediation-coherence-audit/SKILL.md) | Audit cumulative fixes before publication and reconcile unchanged evidence after review. |
 | [`project-context-rebuilder`](codex-workflow/project-context-rebuilder/SKILL.md) | Rebuild project context from repo docs, instructions, specs, and status files. |
+| [`project-visual-brief`](codex-workflow/project-visual-brief/SKILL.md) | Show project progress as vertical color-coded status flows, with read-only evidence, blockers and optional interactive details. |
+| [`record-agent-learning`](codex-workflow/record-agent-learning/SKILL.md) | Capture a terminal lesson once through the separately installed Agent Learning runtime. |
 | [`sync-codex-skills`](codex-workflow/sync-codex-skills/SKILL.md) | Sync shared `~/.agents/skills` entries into Codex-facing skill mirrors. |
 | [`update-agents-workflows`](codex-workflow/update-agents-workflows/SKILL.md) | Update repository agent instructions from observed workflows and commands. |
 | [`update-agents-file-templates`](codex-workflow/update-agents-file-templates/SKILL.md) | Review and apply approved reusable changes to agent-instruction templates. |
+| [`workflow-retrospective`](codex-workflow/workflow-retrospective/SKILL.md) | Review scoped task/chat evidence, apply bounded workflow improvements, retain lessons and resume authorized work. |
 
 ### Dependency Management
 
@@ -182,15 +184,17 @@ Use `--full-depth` so the CLI scans every category directory.
 | [`review-coordinator`](quality-review/review-coordinator/SKILL.md) | Own scoped review/remediation, risk routing, reusable evidence and one local exit. |
 | [`scoped-pre-pr-remediation`](quality-review/scoped-pre-pr-remediation/SKILL.md) | Review and fix a scoped branch, commit range, diff, or working tree before PR. |
 | [`stack-best-practices-review`](quality-review/stack-best-practices-review/SKILL.md) | Review idiomatic stack usage, maintainability, architecture fit, and modernization. |
+| [`streamline-test-suite`](quality-review/streamline-test-suite/SKILL.md) | Prune obsolete tests, consolidate redundant coverage and reduce measured suite cost while preserving regression controls. |
 
 ### Release GitHub
 
 | Skill | Purpose |
 | --- | --- |
-| [`create-github-release`](release-github/create-github-release/SKILL.md) | Create or update a GitHub release from a local changelog. |
+| [`create-github-release`](release-github/create-github-release/SKILL.md) | Publish prepared notes through a shared same-host gate, optionally validating an `update-release` bound plan. |
 | [`github-repo-discoverability`](release-github/github-repo-discoverability/SKILL.md) | Improve repository metadata, topics, labels, README, and discoverability. |
 | [`pr-description-markdown`](release-github/pr-description-markdown/SKILL.md) | Generate a Markdown PR description from git diff and log. |
 | [`repo-publication-sanitizer`](release-github/repo-publication-sanitizer/SKILL.md) | Sanitize a repository before public release or PR publication. |
+| [`update-release`](release-github/update-release/SKILL.md) | Prepare scoped TODO, changelog and version metadata against fresh mainline, tags and release evidence. |
 
 ### Spec Workflow
 
@@ -267,6 +271,13 @@ terminal learning once. [Calibration](quality-review/review-coordinator/referenc
 uses observed escapes, regressions and available usage; unknown metrics never
 justify weaker coverage or claimed savings.
 
+An explicitly requested third-party Retro can contribute independent session
+observations to the same terminal record. The optional
+[comparison protocol](codex-workflow/codex-review-skill-autolearn/references/session-improvement.md)
+uses frozen sources and report-only contexts; it is not another review gate.
+The record/consolidation entrypoints are mirrored from `agent-learning-system`;
+their store, helper and scheduling runtime still require that separate project.
+
 ```mermaid
 flowchart LR
     accTitle: Remediation and terminal learning
@@ -281,7 +292,50 @@ flowchart LR
     learn --> record["record-agent-learning + external learning runtime"]
 ```
 
-The record and consolidation skills are mirrors of `agent-learning-system`; their store, helper and scheduling runtime remain a separate dependency.
+### Task Retrospectives
+
+[`workflow-retrospective`](codex-workflow/workflow-retrospective/SKILL.md) provides
+a standalone task feedback loop. It defaults to the current chat, accounts for
+explicitly selected chats, and reuses existing learning evidence. The separately
+installed third-party `retro` can gather candidates when explicitly requested.
+Configured learning capture is optional; a project learning document is the
+fallback. Future tasks assess whether another retrospective is useful.
+
+```mermaid
+flowchart LR
+    accTitle: Task retrospective and resumption
+    accDescr: Checkpoint scoped work, review evidence once, apply a bounded improvement, retain the lesson and resume; later comparable work verifies its effect.
+    task["Task outcome and checkpoint"] --> retro["workflow-retrospective"]
+    retro --> change["Validated improvement or no-change"]
+    change --> store["Configured learning store or project note"]
+    store --> resume["Resume authorized work"]
+    store --> future["Next comparable task verifies effect"]
+```
+
+### Project Visual Briefings
+
+[`project-visual-brief`](codex-workflow/project-visual-brief/SKILL.md) observes all
+non-archived chats in one verified project, with extra attention to running and
+unresolved work. Its default progress view is a compact vertical flow of colored
+status rectangles and localized labels. It distinguishes completion, active
+implementation/review, planned work, pending checks and confirmed blockers.
+Interactive detail remains available when useful. Routine updates can refresh
+existing verified evidence; full project-chat briefs retain complete coverage.
+Waiting for input does not imply implementation is complete.
+It supports one-off and explicitly scheduled refreshes. Worker-chat messages
+remain drafts until the user asks to send them; retrospective analysis is optional.
+
+```mermaid
+flowchart TB
+    accTitle: Project observation and useful next steps
+    accDescr: Read project chat evidence without directing workers, render a visual brief, and optionally prepare handoff drafts or scoped retrospective input.
+    chats["Verified project chats and relevant roadmap evidence"] --> brief["project-visual-brief: read-only observer"]
+    brief --> flow["Default: vertical color-coded status flow"]
+    flow --> next["Readiness versus execution; evidence and next action"]
+    brief -. Optional detail view .-> hybrid["Interactive hybrid when useful or requested"]
+    next --> draft["Drafts for selected chats; explicit instruction before sending"]
+    next --> retro["Optional workflow-retrospective input"]
+```
 
 ### Agent Instruction Lifecycle
 
@@ -301,22 +355,49 @@ flowchart LR
     council --> proof["Learning integration receipts: review, sources, copies, consumers"]
 ```
 
+### Test Suite Maintenance
+
+[`streamline-test-suite`](quality-review/streamline-test-suite/SKILL.md) audits
+existing suites and implements authorized cost reductions. The regression planner
+handles validation for a particular diff; the test-review profile checks the
+resulting coverage. These remain separate tasks, without an automatic review loop.
+
+```mermaid
+flowchart LR
+    accTitle: Test suite maintenance
+    accDescr: Suite maintenance maps retained regression controls, while diff planning and test review consume the relevant evidence.
+    suite["streamline-test-suite"] --> map["Retained controls and execution triggers"]
+    diff["Changed contracts"] --> planner["diff-regression-check-planner"]
+    map --> planner
+    map --> profile["pre-pr-review-tests-validation"]
+```
+
 ### Release and Publication Entrypoints
 
-This flow shows the release-oriented skills that hand off into the review and
-sanitization stack.
+`update-release` prepares a provisional scoped delta; final metadata receives
+review on its new HEAD before an authorized merge. Publication has its own
+approval. Install `create-github-release` alongside it for the bound-plan handoff;
+preparation remains independently usable. The publisher holds a common-Git-directory
+lock for cooperating worktrees/processes on one host. Its optional external
+adapter supports stronger coordination when a real shared gate already exists.
+See the [plan contract](release-github/update-release/references/planning.md) and
+[publication contract](release-github/create-github-release/references/guarded-publication.md).
 
 ```mermaid
 flowchart LR
     accTitle: Release and publication entrypoints
-    accDescr: Shows release and discoverability skills that delegate to review or sanitizer skills.
+    accDescr: Scoped preparation and final-head review precede verified merge and separately authorized guarded publication.
 
+    prepare["update-release"]
+    plan["Scoped metadata and provisional version"]
+    merged["Authorized, verified merge and target binding"]
     release["create-github-release"]
     discoverability["github-repo-discoverability"]
     gate["pre-pr-review-gate"]
     sanitizer["repo-publication-sanitizer"]
 
-    release --> gate
+    prepare --> plan --> gate --> merged
+    merged -->|"Separate release approval; held gate"| release
     discoverability --> sanitizer
 ```
 

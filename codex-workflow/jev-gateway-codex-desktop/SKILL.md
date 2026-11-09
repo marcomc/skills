@@ -52,6 +52,11 @@ Keep claims separate:
 
 ## Roll back
 
+Changing the default provider does not migrate existing saved chats. Before
+removing a provider, check affected chat resumability and use a supported
+history-preserving path. Any undocumented same-chat metadata repair requires
+explicit authorization, backups and separate history and resume verification.
+
 Use the exact backup path reported by the configurator, then fully restart Codex Desktop:
 
 ```sh

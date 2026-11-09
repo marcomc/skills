@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Visual Brief"
+  short_description: "Visual project direction, progress and blockers"
+  default_prompt: "Use $project-visual-brief in this observer chat to show this project's progress, active chats, blockers and next useful milestone as a compact vertical color-coded status flow, using my current conversation language."
