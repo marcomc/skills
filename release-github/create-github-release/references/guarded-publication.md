@@ -37,6 +37,12 @@ Plan mode creates an unused release; it does not edit existing publications.
 No-plan mode can edit an existing stable release when the request authorizes
 that operation. Existing drafts/prereleases require separately scoped handling.
 
+GitHub draft release pages may use an `untagged-<hash>` URL even when
+`tag_name` records the intended version. Accept that form only for draft records
+inside the verified repository; retain their ID and intended tag in the baseline.
+Published records still require the exact tag URL. An unrelated future draft
+does not block publication; transitioning a target draft remains separately scoped.
+
 The publisher journals tag intent before creation/push, then reads the exact
 remote object and peeled commit back. Only that verified current-attempt tag
 can be normalized out of later plan comparisons. After creation, only the exact

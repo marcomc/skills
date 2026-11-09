@@ -31,7 +31,8 @@ All notable changes to this repository are tracked here.
   lock shared across same-host worktrees and processes, plus an optional live
   external gate adapter for projects requiring multi-host exclusion. Validate
   GitHub repository identity case-insensitively while preserving exact host
-  and tag identity.
+  and tag identity. Retain draft release IDs and intended tags even when GitHub
+  assigns an `untagged-<hash>` page URL, without blocking unrelated publications.
 - Add `record-agent-learning` as a distribution entrypoint for verified lesson
   capture with applied evidence and source-run identity; its runtime remains
   a separate Agent Learning System dependency.
@@ -68,7 +69,8 @@ All notable changes to this repository are tracked here.
   accumulate matching coin specimens within a planned batch, and prevent
   template refreshes from silently discarding configured placeholder values,
   including saved legacy project names with unrecorded provenance. Prefer explicit
-  and recorded values over template inference; refuse unresolved conflicts safely.
+  and recorded values over template inference; refuse unresolved conflicts safely
+  while reporting every consumer with conflict details in read-only scans.
 
 - Recover stalled Codex PR reviews after 30 minutes without meaningful progress
   with one recorded retry per head, then report a repeated stall and monitor quietly.

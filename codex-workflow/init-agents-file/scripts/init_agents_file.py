@@ -161,6 +161,10 @@ def template_map(manifest: dict) -> dict[str, str]:
     return {item["id"]: item["path"] for item in manifest.get("project_types", [])}
 
 
+class RecoveryConflict(SystemExit):
+    """Expected ambiguous saved values; mutation must stop, status can report it."""
+
+
 def project_name_origin(current: str | None, pairs: list[str]) -> str:
     if any(pair.split("=", 1)[0] == "PROJECT_NAME" for pair in pairs):
         return "override"
@@ -170,7 +174,7 @@ def project_name_origin(current: str | None, pairs: list[str]) -> str:
     derived = "<!-- project-name-derived -->" in header
     override = "<!-- project-name-override -->" in header
     if derived and override:
-        raise SystemExit("Ambiguous project-name provenance. No file was changed; review the conflicting markers.")
+        raise RecoveryConflict("Ambiguous project-name provenance. No file was changed; review the conflicting markers.")
     # Legacy files did not record provenance, so retain their saved value.
     return "derived" if derived else "override"
 
@@ -326,7 +330,7 @@ def recover_render_pairs(
                     if name in authoritative_keys:
                         continue
                     if name in recovered and recovered[name] != value:
-                        raise SystemExit(f"Conflicting recovered placeholder {name}; supply an explicit value after review.")
+                        raise RecoveryConflict(f"Conflicting recovered placeholder {name}; supply an explicit value after review.")
                     recovered[name] = value
         return [f"{key}={value}" for key, value in recovered.items()], False
     for key in sentinels:
@@ -398,11 +402,20 @@ def check_output(
         }
 
     selected = forced_types or generated_types(current) or detected
-    recovered, recovery_complete = recover_render_pairs(
-        project, template_repo, selected, agent, output_name, current, pairs
-    )
-    expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name,
-                      name_origin=project_name_origin(current, pairs))
+    try:
+        recovered, recovery_complete = recover_render_pairs(
+            project, template_repo, selected, agent, output_name, current, pairs
+        )
+        expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name,
+                          name_origin=project_name_origin(current, pairs))
+    except RecoveryConflict as exc:
+        return {
+            "project": str(project),
+            "output": str(output),
+            "status": "out-of-sync",
+            "template_types": selected,
+            "recovery_conflict": str(exc),
+        }
     status = (
         "current"
         if (recovery_complete or not unrecovered_placeholders(template_repo, selected, recovered, pairs))

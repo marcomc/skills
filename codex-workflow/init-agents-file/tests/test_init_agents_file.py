@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -315,6 +316,12 @@ class InitAgentsFileTests(unittest.TestCase):
         refused = self.run_helper("--apply")
         self.assertNotEqual(refused.returncode, 0)
         self.assertIn("Conflicting recovered placeholder TEST_COMMAND", refused.stderr)
+        self.assertEqual(output.read_bytes(), original)
+        checked = self.run_helper("--check", "--json")
+        self.assertEqual(checked.returncode, 1)
+        status = json.loads(checked.stdout)
+        self.assertEqual(status["status"], "out-of-sync")
+        self.assertIn("TEST_COMMAND", status["recovery_conflict"])
         self.assertEqual(output.read_bytes(), original)
         partial = self.run_helper("--set", "TEST_COMMAND=make checked", "--apply")
         self.assertNotEqual(partial.returncode, 0)

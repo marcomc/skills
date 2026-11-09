@@ -51,7 +51,9 @@ retain the saved name as an override; supply `--set PROJECT_NAME=VALUE` to chang
 Explicit `--set` values take precedence over saved header values, which take
 precedence over values inferred from unchanged template sections. Conflicting
 section inferences without a saved header value require an explicit value for
-that key; unresolved conflicts stop before changing the file.
+that key; unresolved conflicts stop before changing the file. Read-only `--check`
+returns `out-of-sync` with `recovery_conflict` details for these consumers, so
+collection reports can include every consumer without refreshing any file.
 Changes with no unrecovered placeholders can still be applied. Dry-run output
 remains available for comparison and warns when explicit values are needed.
 

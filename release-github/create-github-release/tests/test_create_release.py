@@ -35,6 +35,16 @@ class ReleaseUrlIdentityTests(unittest.TestCase):
             "https://github.com/Example/Project/releases/tag/v1.2.3",
             "github.com/example/project", "v1.2.3"))
 
+    def test_untagged_draft_urls_remain_bound_to_the_repository(self):
+        url = "https://github.com/example/project/releases/tag/untagged-ff5db9c82066f19c0ce6"
+        self.assertTrue(pub.release_url_valid(url, "github.com/example/project", "v2.0.0", draft=True))
+        self.assertFalse(pub.release_url_valid(url, "github.com/example/project", "v2.0.0"))
+        for invalid in [url.replace("/example/", "/other/"),
+                        url.replace("github.com/", "github.com.evil.test/"),
+                        url + "?secret=1", url + "/extra", url.replace("ff5db9c82066f19c0ce6", "not-a-hash")]:
+            with self.subTest(url=invalid):
+                self.assertFalse(pub.release_url_valid(invalid, "github.com/example/project", "v2.0.0", draft=True))
+
     def test_tag_case_remains_exact(self):
         self.assertFalse(pub.release_url_valid(
             "https://github.com/Example/Project/releases/tag/V1.2.3",
@@ -207,6 +217,34 @@ class PublisherTests(unittest.TestCase):
         self.synchronize_records()
         result = pub.Publisher(self.args(plan=False)).publish()
         self.assertEqual(result["version"], "1.1.0")
+        self.assertEqual(self.journal()["status"], "verified")
+
+    def add_unrelated_draft(self):
+        draft = self.full_record(fixtures.published("2.0.0", 2, draft=True))
+        draft["html_url"] = "https://github.com/example/project/releases/tag/untagged-ff5db9c82066f19c0ce6"
+        self.records.append(draft)
+        self.synchronize_records()
+        self.bound = guard.bind_plan(self.root, self.plan)
+        self.plan_path.unlink()
+        guard.write_json(self.bound, self.plan_path)
+        return copy.deepcopy(draft)
+
+    def test_guarded_publication_preserves_unrelated_untagged_draft(self):
+        draft = self.add_unrelated_draft()
+        result = pub.Publisher(self.args()).publish()
+        self.assertEqual(result["version"], "1.1.0")
+        self.assertEqual(self.mutations, ["create"])
+        self.assertEqual(next(record for record in self.records if record["id"] == draft["id"]), draft)
+        self.assertIn({key: draft[key] for key in pub.RELEASE_FIELDS},
+                      self.bound["publication_baseline"]["github"]["releases"])
+        self.assertEqual(self.journal()["status"], "verified")
+
+    def test_no_plan_publication_preserves_unrelated_untagged_draft(self):
+        draft = self.add_unrelated_draft()
+        result = pub.Publisher(self.args(plan=False)).publish()
+        self.assertEqual(result["version"], "1.1.0")
+        self.assertEqual(self.mutations, ["create"])
+        self.assertEqual(next(record for record in self.records if record["id"] == draft["id"]), draft)
         self.assertEqual(self.journal()["status"], "verified")
 
     def test_guarded_publication_accepts_only_owned_exact_tag_and_release(self):

@@ -129,7 +129,7 @@ def github_json(root, repository, endpoint, *options):
                            endpoint, *options], root))
 
 
-def release_url_valid(url, repository, tag):
+def release_url_valid(url, repository, tag, draft=False):
     parsed = urlsplit(url)
     host, owner, name = repository.split("/")
     path = unquote(parsed.path).split("/", 3)
@@ -138,7 +138,8 @@ def release_url_valid(url, repository, tag):
             and not parsed.password and not parsed.query and not parsed.fragment
             and len(path) == 4 and path[0] == ""
             and "/".join(path[1:3]).lower() == f"{owner}/{name}".lower()
-            and path[3] == f"releases/tag/{tag}")
+            and (path[3] == f"releases/tag/{tag}"
+                 or (draft and re.fullmatch(r"releases/tag/untagged-[0-9a-f]+", path[3]) is not None)))
 
 
 def github_releases(root, repository):
@@ -170,7 +171,7 @@ def github_releases(root, repository):
             require(isinstance(record.get("body"), (str, type(None)))
                     and isinstance(record.get("name"), (str, type(None))), "Malformed release notes")
             require(isinstance(record.get("html_url"), str)
-                    and release_url_valid(record["html_url"], repository, record["tag_name"]),
+                    and release_url_valid(record["html_url"], repository, record["tag_name"], draft=record["draft"]),
                     "Release URL does not match repository/tag")
             ids.add(record["id"])
             tags.add(record["tag_name"])
