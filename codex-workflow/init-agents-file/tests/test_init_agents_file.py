@@ -205,6 +205,42 @@ class InitAgentsFileTests(unittest.TestCase):
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
         self.assertIn(f"Updated guidance for {description}.", output.read_text())
 
+    def test_drift_refresh_preserves_default_and_empty_descriptions(self) -> None:
+        template = self.template_repo / "templates" / "python.md"
+        for description in [None, ""]:
+            with self.subTest(description=description):
+                output = self.project / "AGENTS.md"
+                output.unlink(missing_ok=True)
+                template.write_text("# Python\n\nOriginal guidance.\n")
+                arguments = [] if description is None else ["--set", "PROJECT_DESCRIPTION="]
+                initial = self.run_helper("--types", "python", *arguments, "--apply")
+                self.assertEqual(initial.returncode, 0, initial.stderr)
+                template.write_text("# Python\n\nUpdated guidance.\n")
+                refreshed = self.run_helper("--apply")
+                self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+                expected = "${PROJECT_DESCRIPTION}" if description is None else ""
+                self.assertIn(f"- Description: {expected}\n", output.read_text())
+                self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
+
+    def test_renamed_project_refresh_distinguishes_derived_and_explicit_names(self) -> None:
+        for explicit in [False, True]:
+            with self.subTest(explicit=explicit):
+                self.project = self.root / f"old-{explicit}"
+                self.project.mkdir()
+                arguments = ["--set", "PROJECT_NAME=Stable name"] if explicit else []
+                initial = self.run_helper("--types", "python", *arguments, "--apply")
+                self.assertEqual(initial.returncode, 0, initial.stderr)
+                renamed = self.root / f"new-{explicit}"
+                self.project.rename(renamed)
+                self.project = renamed
+                refreshed = self.run_helper("--apply")
+                self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+                text = (renamed / "AGENTS.md").read_text()
+                expected = "Stable name" if explicit else renamed.name
+                self.assertIn(f"- Project: `{expected}`", text)
+                self.assertEqual("<!-- project-name-override -->" in text, explicit)
+                self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
+
     def test_specific_output_variant_refuses_unmarked_existing_file(self) -> None:
         output = self.project / "CLAUDE.md"
         original = b"User-authored Claude rules\n"

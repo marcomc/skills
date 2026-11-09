@@ -270,13 +270,13 @@ def recover_render_pairs(
     project_name_match = PROJECT_NAME_PATTERN.search(current)
     project_name = project_name_match.group("value") if project_name_match else None
     if project_name is not None:
-        recovered["PROJECT_NAME"] = project_name
+        recovered["PROJECT_NAME"] = (project_name if "<!-- project-name-override -->" in current
+                                     else project.name)
     description_match = (PROJECT_DESCRIPTION_PATTERN.search(current)
                          if current.count("\n\n## Project-Type Overlays\n") == 1 else None)
     if description_match:
         description = description_match.group("value")
-        if description and description != "${PROJECT_DESCRIPTION}":
-            recovered["PROJECT_DESCRIPTION"] = description
+        recovered["PROJECT_DESCRIPTION"] = description
     global_path_match = GLOBAL_POLICY_PATH_PATTERN.search(current)
     if global_path_match:
         recovered["GLOBAL_AGENTS_PATH"] = global_path_match.group("value")
