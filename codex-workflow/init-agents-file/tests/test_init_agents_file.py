@@ -281,6 +281,57 @@ class InitAgentsFileTests(unittest.TestCase):
         self.assertIn("<!-- project-name-override -->", text)
         self.assertIn('"status": "current"', self.run_helper("--check", "--json").stdout)
 
+    def test_recorded_and_explicit_values_take_precedence_over_section_inference(self) -> None:
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text("# Python\n\nUse production.\n")
+        initial = self.run_helper("--types", "python", "--set", "PROJECT_DESCRIPTION=Custom project", "--apply")
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        template.write_text("# Python\n\nUse ${PROJECT_DESCRIPTION}.\n")
+        for arguments, expected in [([], "Custom project"),
+                                    (["--set", "PROJECT_DESCRIPTION=Reviewed replacement"], "Reviewed replacement")]:
+            with self.subTest(arguments=arguments):
+                refreshed = self.run_helper(*arguments, "--apply")
+                self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+                text = (self.project / "AGENTS.md").read_text()
+                self.assertIn(f"- Description: {expected}", text)
+                self.assertIn(f"Use {expected}.", text)
+                self.assertEqual(self.run_helper("--check", "--json").returncode, 0)
+
+    def test_explicit_values_resolve_conflicting_section_inference_without_losing_other_values(self) -> None:
+        (self.template_repo / "templates.yml").write_text(
+            '{"project_types":[{"id":"python","path":"templates/python.md"},'
+            '{"id":"generic","path":"templates/generic.md"}],"merge":{"always_include":[]}}'
+        )
+        python = self.template_repo / "templates" / "python.md"
+        generic = self.template_repo / "templates" / "generic.md"
+        python.write_text("# Python\n\nUse production; lint alpha.\n")
+        generic.write_text("# Generic\n\nUse staging; lint beta.\n")
+        initial = self.run_helper("--types", "python,generic", "--set", "PROJECT_DESCRIPTION=Keep description", "--apply")
+        self.assertEqual(initial.returncode, 0, initial.stderr)
+        output = self.project / "AGENTS.md"
+        original = output.read_bytes()
+        python.write_text("# Python\n\nUse ${TEST_COMMAND}; lint ${LINT_COMMAND}.\n")
+        generic.write_text("# Generic\n\nUse ${TEST_COMMAND}; lint ${LINT_COMMAND}.\n")
+        refused = self.run_helper("--apply")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("Conflicting recovered placeholder TEST_COMMAND", refused.stderr)
+        self.assertEqual(output.read_bytes(), original)
+        partial = self.run_helper("--set", "TEST_COMMAND=make checked", "--apply")
+        self.assertNotEqual(partial.returncode, 0)
+        self.assertIn("Conflicting recovered placeholder LINT_COMMAND", partial.stderr)
+        self.assertEqual(output.read_bytes(), original)
+        arguments = ["--set", "TEST_COMMAND=make checked", "--set", "LINT_COMMAND=make lint"]
+        preview = self.run_helper(*arguments)
+        self.assertEqual(preview.returncode, 0, preview.stderr)
+        self.assertEqual(output.read_bytes(), original)
+        self.assertEqual(preview.stdout.count("Use make checked; lint make lint."), 2)
+        refreshed = self.run_helper(*arguments, "--apply")
+        self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+        text = output.read_text()
+        self.assertEqual(text.count("Use make checked; lint make lint."), 2)
+        self.assertIn("- Description: Keep description", text)
+        self.assertEqual(self.run_helper("--check", "--json").returncode, 0)
+
     def test_specific_output_variant_refuses_unmarked_existing_file(self) -> None:
         output = self.project / "CLAUDE.md"
         original = b"User-authored Claude rules\n"

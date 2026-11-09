@@ -48,6 +48,10 @@ New files record whether their project name is directory-derived or an explicit
 override, including overrides equal to the current directory name. Only recorded
 derived names follow directory renames. Legacy files without name provenance
 retain the saved name as an override; supply `--set PROJECT_NAME=VALUE` to change it.
+Explicit `--set` values take precedence over saved header values, which take
+precedence over values inferred from unchanged template sections. Conflicting
+section inferences without a saved header value require an explicit value for
+that key; unresolved conflicts stop before changing the file.
 Changes with no unrecovered placeholders can still be applied. Dry-run output
 remains available for comparison and warns when explicit values are needed.
 
