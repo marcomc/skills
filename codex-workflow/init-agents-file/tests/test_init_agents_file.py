@@ -12,6 +12,17 @@ SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "init_agents_file.py"
 
 
 class InitAgentsFileTests(unittest.TestCase):
+    def test_custom_project_name_stays_current_and_learned_headings_are_scoped(self) -> None:
+        template = self.template_repo / "templates" / "python.md"
+        template.write_text("# Python\n\n## Learned Rules\n\n- Preserve evidence.\n", encoding="utf-8")
+        result = self.run_helper("--types", "python", "--set", "PROJECT_NAME=Stable project name", "--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        text = (self.project / "AGENTS.md").read_text()
+        self.assertIn("## Python Learned Rules", text)
+        result = self.run_helper("--check", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('"status": "current"', result.stdout)
+
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)

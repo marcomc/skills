@@ -40,6 +40,16 @@ This repository publishes reusable AI-agent skills for installation through
 - Do not add external skills unless they are intentionally forked or clearly
   attributed.
 
+## Coherent Promotion
+
+Before changing a skill from learnings, read the installed
+`consolidate-agent-learnings/references/coherence.md` contract. Refine the whole
+affected contract, preserve superior policy and required coverage, select local,
+peer or council review by scope, and retain current coherence plus distribution
+receipts before declaring integration. Reuse one coordinator; keep history in
+the learning store. If the contract is unavailable, resolve its owning learning
+repository before promotion.
+
 ## Public-Safe Content
 
 - Avoid absolute maintainer-machine paths such as `/Users/<name>/...` in tracked

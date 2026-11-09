@@ -93,7 +93,8 @@ Use `--full-depth` so the CLI scans every category directory.
 | [`codex-pr-review-remediation-loop`](codex-workflow/codex-pr-review-remediation-loop/SKILL.md) | Close defect families, reuse verified audit evidence, and monitor GitHub Codex review. |
 | [`codex-review-skill-autolearn`](codex-workflow/codex-review-skill-autolearn/SKILL.md) | Distill completed Codex review remediations into reusable skill improvements. |
 | [`compact-agents-file`](codex-workflow/compact-agents-file/SKILL.md) | Compact AI-agent instruction files while preserving intent. |
-| [`consolidate-agent-learnings`](codex-workflow/consolidate-agent-learnings/SKILL.md) | Review agent-learning notes against current evidence and promote only bounded, reusable guidance. |
+| [`consolidate-agent-learnings`](codex-workflow/consolidate-agent-learnings/SKILL.md) | Consolidate bounded learnings through shared coherence, routing and integration contracts. |
+| [`record-agent-learning`](codex-workflow/record-agent-learning/SKILL.md) | Capture a terminal lesson once through the separately installed Agent Learning runtime. |
 | [`init-agents-file`](codex-workflow/init-agents-file/SKILL.md) | Initialize project agent-instruction files from the task, repository and available templates. |
 | [`jev-gateway-codex-desktop`](codex-workflow/jev-gateway-codex-desktop/SKILL.md) | Install Jev Gateway and configure Codex Desktop to route through it while preserving the existing ChatGPT login. |
 | [`move-codex-chat`](codex-workflow/move-codex-chat/SKILL.md) | Move a Codex chat between local project contexts safely. |
@@ -277,14 +278,16 @@ flowchart LR
     core --> terminal["One terminal learning step"]
     terminal --> learn["codex-review-skill-autolearn"]
     learn --> target["Regression test, deterministic check or narrow profile"]
-    learn --> record["record-agent-learning (external)"]
+    learn --> record["record-agent-learning + external learning runtime"]
 ```
+
+The record and consolidation skills are mirrors of `agent-learning-system`; their store, helper and scheduling runtime remain a separate dependency.
 
 ### Agent Instruction Lifecycle
 
-These skills cover separate stages: initialize a project's instructions, update
-them from observed workflows, and promote reviewed reusable changes into shared
-templates.
+These skills initialize project instructions, refine observed workflows and
+promote reviewed reusable rules. Promotion entrypoints share review/integration
+contracts; historical coverage stays in the learning store.
 
 ```mermaid
 flowchart LR
@@ -293,6 +296,9 @@ flowchart LR
     context["Project context"] --> init["init-agents-file"] --> agents["Project AGENTS.md"]
     observed["Observed workflow"] --> update["update-agents-workflows"] --> agents
     reviewed["Approved reusable change"] --> templates["update-agents-file-templates"] --> shared["Shared templates"]
+    shared --> refresh["Refresh managed project instructions"] --> agents
+    templates --> council["Whole-contract coherence: local, peer or council"]
+    council --> proof["Learning integration receipts: review, sources, copies, consumers"]
 ```
 
 ### Release and Publication Entrypoints

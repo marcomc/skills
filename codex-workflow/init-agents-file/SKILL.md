@@ -3,7 +3,8 @@ name: init-agents-file
 description: Use when initializing or refreshing project AI-agent instruction files from reusable global and project-type templates
 ---
 
-<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
+<!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" --> <!-- privacy_scan: allow -->
+<!-- Public author attribution required by the shared skills collection. -->
 
 # Init Agents File
 

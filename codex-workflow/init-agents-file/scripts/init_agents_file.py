@@ -185,6 +185,8 @@ def render(project: Path, template_repo: Path, forced_types: list[str], pairs: l
         "## Project-Type Overlays",
         "",
     ]
+    if values["PROJECT_NAME"] != project.name:
+        output.insert(3, "<!-- project-name-override -->")
 
     for type_id in ordered:
         rel_path = paths.get(type_id)
@@ -193,6 +195,7 @@ def render(project: Path, template_repo: Path, forced_types: list[str], pairs: l
         template_path = template_repo / rel_path
         body = strip_title(template_path.read_text(encoding="utf-8"))
         body = replace_placeholders(body, values)
+        body = re.sub(r"^## Learned Rules$", f"## {type_id.replace('-', ' ').title()} Learned Rules", body, flags=re.MULTILINE)
         output.extend(
             [
                 f"<!-- BEGIN TEMPLATE: {type_id} -->",
@@ -263,6 +266,8 @@ def recover_render_pairs(
     recovered: dict[str, str] = {}
     project_name_match = PROJECT_NAME_PATTERN.search(current)
     project_name = project_name_match.group("value") if project_name_match else None
+    if project_name is not None:
+        recovered["PROJECT_NAME"] = project_name
     description_match = PROJECT_DESCRIPTION_PATTERN.search(current)
     if description_match:
         description = description_match.group("value").strip()
@@ -275,6 +280,8 @@ def recover_render_pairs(
     keys = sorted(recoverable_placeholder_keys(template_repo, selected))
     sentinels = {key: f"__AGENTS_RENDER_PLACEHOLDER_{key}__" for key in keys}
     sentinel_pairs = [f"{key}={value}" for key, value in sentinels.items()]
+    if project_name is not None:
+        sentinel_pairs.append(f"PROJECT_NAME={project_name}")
     rendered = render(project, template_repo, selected, sentinel_pairs, agent, output_name)
     match = re.fullmatch(
         placeholder_pattern(normalize_generated(rendered), sentinels),
@@ -282,8 +289,18 @@ def recover_render_pairs(
         re.DOTALL,
     )
     if not match:
-        if project_name is not None:
-            recovered["PROJECT_NAME"] = project_name
+        current_sections = {m.group("type"): m.group("body") for m in TEMPLATE_SECTION_PATTERN.finditer(current)}
+        for section in TEMPLATE_SECTION_PATTERN.finditer(rendered):
+            prior = current_sections.get(section.group("type"))
+            if prior is None:
+                continue
+            section_match = re.fullmatch(placeholder_pattern(section.group("body"), sentinels), prior, re.DOTALL)
+            if section_match:
+                for key, value in section_match.groupdict().items():
+                    name = key.removeprefix("placeholder_")
+                    if name in recovered and recovered[name] != value:
+                        raise SystemExit(f"Conflicting recovered placeholder {name}; supply an explicit value after review.")
+                    recovered[name] = value
         return [f"{key}={value}" for key, value in recovered.items()], False
     for key in sentinels:
         if sentinels[key] in rendered:
@@ -360,7 +377,8 @@ def check_output(
     expected = render(project, template_repo, selected, [*recovered, *pairs], agent, output_name)
     status = (
         "current"
-        if recovery_complete and normalize_generated(current) == normalize_generated(expected)
+        if (recovery_complete or not unrecovered_placeholders(template_repo, selected, recovered, pairs))
+        and normalize_generated(current) == normalize_generated(expected)
         else "out-of-sync"
     )
     return {
