@@ -12,6 +12,14 @@ broader pre-PR remediation. Do not edit files.
 
 ## Review Focus
 
+- For a planned fast-forward over a reviewed dirty path, verify the old HEAD,
+  clean index, scoped ownership and exact equality with the incoming blob.
+  Rehearse any authorized index-only alignment and verify post-update hashes
+  and unrelated state; never infer permission to change the index.
+- For retained-candidate recovery, bind the original checkpoint separately from
+  the current integration tip. Check ancestry and exact patch compatibility in
+  a disposable index, retain the original worktree and fail closed if the tip
+  changes or the patch conflicts.
 - Shell safety: quoting, declared shell compatibility, `shellcheck --enable=all`
   findings, and justified suppressions only when necessary.
 - Secret field parsing: when shell helpers read multiline secret fields (for

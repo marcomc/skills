@@ -96,7 +96,7 @@ Use `--full-depth` so the CLI scans every category directory.
 | [`consolidate-agent-learnings`](codex-workflow/consolidate-agent-learnings/SKILL.md) | Consolidate bounded learnings through shared coherence, routing and integration contracts. |
 | [`init-agents-file`](codex-workflow/init-agents-file/SKILL.md) | Initialize project agent-instruction files from the task, repository and available templates. |
 | [`jev-gateway-codex-desktop`](codex-workflow/jev-gateway-codex-desktop/SKILL.md) | Install Jev Gateway and configure Codex Desktop to route through it while preserving the existing ChatGPT login. |
-| [`move-codex-chat`](codex-workflow/move-codex-chat/SKILL.md) | Move a Codex chat between local project contexts safely. |
+| [`move-codex-chat`](codex-workflow/move-codex-chat/SKILL.md) | Move native project membership while preserving cwd, worktree and history. |
 | [`pr-remediation-coherence-audit`](codex-workflow/pr-remediation-coherence-audit/SKILL.md) | Audit cumulative fixes before publication and reconcile unchanged evidence after review. |
 | [`project-context-rebuilder`](codex-workflow/project-context-rebuilder/SKILL.md) | Rebuild project context from repo docs, instructions, specs, and status files. |
 | [`project-visual-brief`](codex-workflow/project-visual-brief/SKILL.md) | Show project progress as vertical color-coded status flows, with read-only evidence, blockers and optional interactive details. |
@@ -105,6 +105,11 @@ Use `--full-depth` so the CLI scans every category directory.
 | [`update-agents-workflows`](codex-workflow/update-agents-workflows/SKILL.md) | Update repository agent instructions from observed workflows and commands. |
 | [`update-agents-file-templates`](codex-workflow/update-agents-file-templates/SKILL.md) | Review and apply approved reusable changes to agent-instruction templates. |
 | [`workflow-retrospective`](codex-workflow/workflow-retrospective/SKILL.md) | Review scoped task/chat evidence, apply bounded workflow improvements, retain lessons and resume authorized work. |
+
+`move-codex-chat` changes native project membership while retaining the execution
+context. Its helper only prepares and verifies evidence; moves use app controls
+or the user sidebar when consent is required. Existing helper callers must follow
+the [CLI migration](codex-workflow/move-codex-chat/references/storage-layout.md#helper-cli-migration).
 
 ### Dependency Management
 
@@ -130,6 +135,7 @@ Use `--full-depth` so the CLI scans every category directory.
 
 | Skill | Purpose |
 | --- | --- |
+| [`bitwarden-entry`](macos-administration/bitwarden-entry/SKILL.md) | Create vault entries using the matching Bitwarden template. |
 | [`macos-disk-cleanup`](macos-administration/macos-disk-cleanup/SKILL.md) | Inventory macOS disk usage and reclaim only explicitly authorized, rebuildable data. |
 
 ### Frontend UI
@@ -150,6 +156,8 @@ Use `--full-depth` so the CLI scans every category directory.
 
 | Skill | Purpose |
 | --- | --- |
+| [`amazon-orders-importer`](personal-finance/amazon-orders-importer/SKILL.md) | Refresh an Amazon order tracker while preserving manual classifications and card mappings. |
+| [`tricount-grocery-importer`](personal-finance/tricount-grocery-importer/SKILL.md) | Incrementally import Conad/Lidl receipt products from ingested Tricounts, preserving provenance and preventing duplicate purchases. |
 | [`moneywiz-reconcile`](personal-finance/moneywiz-reconcile/SKILL.md) | Reconcile MoneyWiz transactions against authorized sources with bounded plans and verified readback. |
 
 ### Survey Automation
@@ -221,6 +229,30 @@ Use `--full-depth` so the CLI scans every category directory.
 These diagrams show review ownership and selected collaboration paths. Entry
 skills preserve their public names; one coordinator owns the local run. External
 nodes are referenced capabilities, not bundled copies.
+
+### Amazon Order Import
+
+```mermaid
+flowchart LR
+    amazon["Amazon order history"] --> cli["amazon-orders CLI"]
+    cli --> skill["amazon-orders-importer"]
+    skill --> sheet["Google Sheets tracker"]
+    sheet --> review["Manual categories and card mappings"]
+    review --> skill
+```
+
+### Grocery Import Pipeline
+
+```mermaid
+flowchart LR
+    accTitle: Incremental grocery import
+    accDescr: The on-demand skill reads an upstream transaction service and receipts, then reconciles product rows and their import ledger.
+    exporter["Tricount exporter"] --> upstream["Existing transaction import service"]
+    upstream --> skill["tricount-grocery-importer"]
+    receipts["Drive photos / Lidl digital receipts"] --> skill
+    skill --> db["Existing grocery database + source ledger"]
+    db --> charts["Native formulas and dashboard"]
+```
 
 ### PR Review Coordination
 

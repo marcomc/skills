@@ -1,196 +1,77 @@
 ---
 name: move-codex-chat
-description: Safely move a Codex chat from one existing project to another by updating local Codex metadata and backing up affected files first. Use when a chat appears under the wrong project in Codex Desktop, when a project was created after the chat started, when the user wants to move the current chat to another project, or when a chat title and project names must be resolved and corrected.
+description: Move a Codex Desktop chat between existing projects while preserving its execution directory and worktree, using native membership controls and verified readback.
 ---
 
 <!-- MARCOMC-SKILL: owner="MarcoMC <marco@marcomc.com>"; repository="marcomc/skills"; provenance="original" -->
 
 # Move Codex Chat
 
-## Overview
+Change project membership with the native app tools. Preserve the thread ID,
+host, cwd, worktree, rollout history and execution envelope by default.
+The bundled helper prepares and verifies evidence; it never moves a chat or
+writes the Codex database, rollout files or application configuration.
 
-Use this skill to reassign a Codex Desktop chat to a different existing project by editing the
-local Codex metadata that drives sidebar grouping. The skill must back up the affected SQLite
-database and rollout JSONL files before any write, resolve destination projects conservatively,
-and verify that database, session metadata records, and turn context records agree after the move.
+## Resolve and preview
 
-For the exact metadata touched by this skill, read
-[references/storage-layout.md](references/storage-layout.md).
-
-## Required Inputs
-
-Collect these inputs before running the move:
-
-- Destination project name or full path.
-- Optional chat title.
-- Optional thread id (recommended for apply after preview).
-- Optional source project name or full path.
-- Optional explicit apply intent.
-
-Use these defaults:
-
-- If the chat title is omitted, assume the current chat.
-- If the source project is omitted, infer it from the resolved chat metadata.
-
-## Safety Rules
-
-Follow these rules on every run:
-
-- Never create a destination project as part of this skill.
-- Never write anything until the destination project resolves to one existing path.
-- Always create a timestamped backup before changing Codex metadata.
-- Never guess when a project name resolves to multiple paths.
-- Never guess when a chat title resolves to multiple threads.
-- If current-chat detection is ambiguous, stop and explain what needs to be specified.
-- Verify the SQLite row, rollout `session_meta` records, and rollout `turn_context` records after
-  the move.
-- Tell the user that Codex Desktop may need a restart if the sidebar does not refresh.
-
-## Workflow
-
-### Step 1: Resolve Codex Home
-
-Use `$CODEX_HOME` when it is set. Otherwise use `~/.codex`.
-
-### Step 2: Resolve the Destination Project
-
-Use `scripts/move_codex_chat.py` to resolve the destination from Codex's saved workspace roots.
-
-Accepted input forms:
-
-- full absolute path
-- exact project folder name such as `movewise`
-
-If the project does not exist:
-
-- stop without writing
-- show close project-name suggestions
-- tell the user to correct the name or create the project first
-
-### Step 3: Resolve the Chat
-
-Resolve the target thread as follows:
-
-1. If a chat title is provided, match against the sidebar title first, then fall back to the
-   thread title stored in SQLite.
-2. If a thread id is provided, resolve by that id (optionally constrained by the source project).
-3. If no chat title is provided, treat the current chat as the most recently updated thread,
-   optionally constrained by the source project if provided.
-4. If more than one match remains, stop and show the candidate chat titles, ids, and projects.
-
-### Step 4: Preview Before Applying
-
-Run the helper in dry-run mode first unless the user's message already makes execution explicit.
-
-Example:
+1. Read the actual current `list_projects` inventory. Resolve an existing local
+   destination by exact ID, unambiguous label or canonical full path. Saved
+   workspace roots are not a complete app inventory. Never create a project or
+   infer its ID from its directory name.
+2. Resolve the exact chat with `list_threads`, including its host, project ID,
+   status and cwd. Use the calling chat's known ID for “this chat”; never assume
+   the most recently updated chat is current. Paginate when needed. Resolve
+   duplicate titles before proceeding.
+3. Preserve active/reserved worker ownership: coordinate an idle boundary with
+   its owner before moving an execution envelope. Do not resume or start a chat
+   merely to inspect it. Pin the resolved thread ID for every subsequent action.
+4. Save a fresh exact thread record and the complete project inventory as private
+   JSON evidence outside published files. Run the read-only preview below.
+   Keep its stdout as `before.json`. Show source/destination membership and the
+   preserved cwd/worktree before executing the user's authorized move.
 
 ```bash
-python3 scripts/move_codex_chat.py \
-  --dest-project new-project
+python3 <skill-dir>/scripts/move_codex_chat.py \
+  --thread-json thread-before.json \
+  --projects-json projects.json --dest-project '<project-id>' > before.json
 ```
 
-Or with explicit chat and source project:
+The verifier supports local Codex chats. Other hosts/backends require their
+supported controls and independent equivalent evidence; do not use this local
+helper against them. Read [storage-layout.md](references/storage-layout.md)
+for evidence limits and explicit context relocation.
+
+## Move through the app
+
+Call `move_thread_to_project` with the exact thread ID, destination project ID
+and host. This changes membership; do not rewrite cwd to simulate it.
+
+- On `confirmation_required`, stop automated writes and name the exact chat and
+  destination for the user to move in the sidebar. The native move supplies the
+  source-folder consent; the tool has no confirmation override parameter.
+- On ambiguous source identity or refusal, explain the exact refusal and use the
+  permitted manual action. Do not bypass it with private database writes, guessed
+  project mappings, permission changes or another destination chosen to evade it.
+- On timeout or uncertain mutation, read current membership before doing anything
+  else. Do not automatically retry the move or report success from the API envelope.
+- If native tools are unavailable, request the same bounded manual move. Avoid
+  UI automation when access to the app is denied.
+
+## Verify and report
+
+Read the exact thread again from the app, independently of the mutation response.
+Save that record as `thread-after.json` and run:
 
 ```bash
-python3 scripts/move_codex_chat.py \
-  --chat "Planning notes" \
-  --source-project old-project \
-  --dest-project new-project
+python3 <skill-dir>/scripts/move_codex_chat.py \
+  --thread-json thread-after.json --before-json before.json
 ```
 
-The preview must show:
-
-- resolved thread id
-- resolved chat title
-- current project path
-- destination project path
-- rollout file that will be patched
-
-Important: if the preview used implicit "current chat" resolution (no `--chat`), do not rely on
-running the same command again for apply. Another chat updating can change what "current" means.
-Prefer applying with the resolved `thread_id` from the preview.
-
-### Step 5: Apply the Move
-
-If the preview is correct and the user asked to execute, run:
-
-```bash
-python3 scripts/move_codex_chat.py \
-  --dest-project new-project \
-  --apply
-```
-
-If the preview resolved a `thread_id`, prefer pinning it for apply:
-
-```bash
-python3 scripts/move_codex_chat.py \
-  --thread-id "<thread-id-from-preview>" \
-  --dest-project new-project \
-  --apply
-```
-
-Or with explicit chat identification:
-
-```bash
-python3 scripts/move_codex_chat.py \
-  --chat "Planning notes" \
-  --source-project old-project \
-  --dest-project new-project \
-  --apply
-```
-
-The helper must:
-
-- back up `state_5.sqlite`
-- back up every affected rollout JSONL file
-- update `threads.cwd`
-- update each `session_meta.payload.cwd` in the rollout file
-- update each rollout `turn_context.payload.cwd` and `turn_context.payload.workspace_roots`
-- verify the database row, `session_meta` records, and `turn_context` records agree
-
-### Step 6: Report the Result
-
-Summarize:
-
-- moved chat title
-- thread id
-- source project
-- destination project
-- backup directory
-- number of `turn_context` records updated
-- whether a Codex Desktop restart may be needed
-
-## Common Cases
-
-### Move the current chat
-
-Use when the user says something like:
-
-- `move this chat to movewise`
-- `move this project chat into movewise`
-
-Run the helper without `--chat`.
-
-### Move a named chat
-
-Use when the user says something like:
-
-- `move "Riorganizza Drive e backup" to movewise`
-
-Pass the title with `--chat`.
-
-### Project Name Does Not Resolve
-
-If the destination does not resolve, do not write. Show close project suggestions and tell the
-user the project must exist first.
-
-## Resources
-
-### scripts/
-
-- `move_codex_chat.py`: Resolve the thread and project, create backups, apply the move, and
-  verify the result.
-
-### references/
-
-- `storage-layout.md`: Quick reference for the Codex metadata files touched by this skill.
+Success requires both the destination `projectId` and identical execution
+fingerprints. The chat must remain idle during strict rollout comparison; if a
+new turn appended history, reconcile it separately rather than labeling a changed
+file preserved. A missing destination, changed context or unavailable evidence is
+not success. Preserve evidence and explain the precise next action; do not repair
+it by overwriting history. Report the actual route (native tool or user sidebar),
+source/destination and preserved cwd/worktree. Do not promise universal automatic
+moves from one successful manual case.

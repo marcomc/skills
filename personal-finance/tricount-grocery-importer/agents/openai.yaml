@@ -1,0 +1,4 @@
+interface:
+  display_name: "Importa scontrini Tricount"
+  short_description: "Importa nuove spese Conad e Lidl senza duplicati"
+  default_prompt: "Usa $tricount-grocery-importer per importare gli scontrini Conad e Lidl delle nuove transazioni Tricount, recuperare quelli mancanti e aggiornare il foglio senza duplicati."

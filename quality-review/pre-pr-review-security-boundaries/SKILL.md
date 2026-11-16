@@ -17,6 +17,12 @@ broader pre-PR remediation. Do not edit files.
 - Security-relevant remote collections must match the complete expected shape;
   do not accept one safe member while an additional public, privileged, or
   mismatched member remains. Test mixed safe-and-unsafe collections.
+- For public output, apply the shared leak policy to every caller-supplied
+  string, including identifiers, alongside field-specific syntax validation;
+  test synthetic sensitive shapes in each serialized field.
+- Review new and touched public fixtures derived from private evidence for
+  identifying and transaction-specific values. Use coherent synthetic data
+  that preserves the tested relationships and retain real evidence privately.
 - Treat external responses as untrusted at both schema and identity boundaries:
   validate each root, nested collection, and record before access, then require
   the returned stable identity to match the requested resource before using its

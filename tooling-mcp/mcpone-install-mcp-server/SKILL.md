@@ -11,6 +11,11 @@ Use this skill when the user asks for something like: `install skill (<name>) fr
 
 ## Primary usage
 
+Before using the installed helper, compare its complete payload with the
+reviewed owning source, including security-relevant scripts and tests. If parity
+cannot be verified, stop and reconcile through the authorized installation
+workflow; retain a verified rollback copy before replacing an existing payload.
+
 Run these commands from the installed skill directory (for example,
 `cd ~/.agents/skills/mcpone-install-mcp-server`). Name optional:
 

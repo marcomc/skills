@@ -40,6 +40,31 @@ broader pre-PR remediation. Do not edit files.
   (including domain wrappers around converter exceptions) in the per-row error
   report, while explicitly re-raising schema or compatibility failures that
   invalidate the whole read. Exercise both paths.
+- For large read-only reports, review pagination and expensive per-item history
+  against the report deadline. A bulk current-state inventory must remain
+  complete, while authorization paths retain their own exact history evidence.
+- For recovery status projections, compare authenticated terminal role evidence,
+  the original run deadline and route-specific retry eligibility separately.
+  Exercise stale preparation messages and conflicting evidence; do not infer the
+  original send outcome from a retry rejection or overwrite preserved controls.
+- When admission relies on a checkpoint remaining fresh throughout a worker
+  window, compare its expiry with the full proposed deadline before claiming.
+- When closed tasks satisfy dependencies, distinguish completed work from a
+  superseded or cancelled task; verify and rebind open dependents to an
+  authorized replacement or hold them before closing the original.
+- When recovery relies on a particular status return, verify its event lineage
+  against later status changes. Preserve the original event and hold unsupported
+  supersession rather than inventing a recovery path.
+- Before withdrawing an unread execution marker, verify the exact terminal
+  owner, marker identity and absence of a journal, attempt or invocation.
+  Preserve markers with possible effects; a file access time alone is not proof
+  of mutation or consumption.
+- For private state lookup, avoid mutation serializers only when current owner,
+  mode and path invariants already hold. Keep unsafe repair and creation
+  serialized; exercise a safe lookup while the serializer is held.
+- Validate private admission files with the actual runtime reader, including
+  ownership, mode, size and link-count requirements. Keep evidence copies
+  separate from the admitted file and preserve missed occurrences without replay.
 - A frozen result object does not freeze nested collections. Publish reports
   with defensively copied immutable mappings or collections, then test that
   neither mutation of the input nor a cast of the exposed value can change the
@@ -56,6 +81,14 @@ broader pre-PR remediation. Do not edit files.
   entrypoint and thread it through preprocessing, fallback, recovery, and
   retry calls; never let a helper start a fresh budget after work has already
   consumed invocation time.
+  Keep bounded transport phases distinct from that fixed deadline and exercise
+  slow non-transport checks before the final send and hard-limit revalidation.
+- When retrying transient provider reads, bound retries to the identified
+  transport error, original request and attempt budget. Test recovery and terminal failure,
+  and prove mutation paths are not replayed by the read retry.
+- When changing persisted metadata encoding, version new writes and preserve
+  legacy decoding semantics. Test literal escapes, malformed tagged data and
+  repeated round trips through real downstream consumers.
 - When a retry receives malformed or empty output, retain the last fully
   normalized, schema-valid state for the next attempt and final failure context.
   A partial snapshot attached to a normalization error is fallback context only
@@ -110,13 +143,21 @@ broader pre-PR remediation. Do not edit files.
   the upstream eligibility decision.
 - Aggregate evidence filters: discard records with unusable payloads before
   identity, provenance, or trust checks; irrelevant malformed records must not
-  turn otherwise valid evidence into conflict or failure.
+  turn otherwise valid evidence into conflict or failure. Define deduplication
+  keys with the applicable scope, event kind, local identity and revision. Define
+  checkpoint identity separately for its domain while retaining its scope;
+  downstream grouping must preserve relevant scope and kind. Test equal local
+  IDs across scopes and kinds, checkpoint isolation across scopes, and
+  contradictory evidence for an exact key.
 - Resource alias and destructive-target guards must compare stable provider
   identifiers, not in-memory service-wrapper identity. Test separate wrapper
   objects for the same remote resource and distinct resources with similar
   names before any clear, replace, move, or delete.
 - Persistence compatibility: migrations, serialized formats, file paths,
   generated outputs, and backward compatibility with existing data.
+  When a migration removes a database constraint still relied on by older
+  writers, preserve the required admission invariant across rollback. Test an
+  old write against the migrated database and any atomic replacement guard.
   Never adopt an unchanged cache as a durable baseline after a failed first
   checkpoint. Test absent and existing-empty files across unchanged retry
   cycles; preserve unsaved observations without overriding genuine peer ACKs.

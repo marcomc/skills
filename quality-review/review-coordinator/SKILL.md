@@ -95,6 +95,10 @@ and `scripts/evaluate_review.py` to identify reusable and outstanding checks.
 The helper validates records, not semantic truth or test execution. Review the
 coverage plan before treating its mechanical result as a local verdict.
 
+Before running full suites in parallel across worktrees, identify shared state,
+leases, fixed session IDs and ports. Serialize conflicting runs or use separately
+verified fixture isolation.
+
 Keep unchanged passing evidence. Product changes, changed requirements, relevant
 dependencies, environment drift or new substantive feedback invalidate affected
 proofs. Narrow reuse needs an explicit complete input map; uncertainty means

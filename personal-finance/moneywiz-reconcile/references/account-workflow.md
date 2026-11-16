@@ -133,6 +133,9 @@ setting does not authorize rewriting historical transactions.
 
 ## Investments, savings and adjustments
 
+- Dividends: reconcile each cash credit to the provider's explicit net statement
+  amount. Do not apply one historical withholding percentage across securities;
+  keep unsupported non-cash events unresolved instead of inventing adjustments.
 - Savings: verify receipts and effective dates before adding interest, bonus or
   prizes. An email without the amount is insufficient evidence of that amount.
 - Units-based portfolios: verify security/type, quantity, quote unit (GBP versus GBX),
