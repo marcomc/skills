@@ -4,17 +4,7 @@ All notable changes to this repository are tracked here.
 
 ## Unreleased
 
-### Added
-
-- Add `amazon-orders-importer` for guarded, repeatable order tracking, with
-  transaction reconciliation, split-payment tracking and a guarded importer.
-
-- Add `bitwarden-entry` for template-based vault entries.
-
-- Add `tricount-grocery-importer` for incremental Conad/Lidl receipt extraction
-  from already ingested Tricounts, private workspace configuration, source
-  provenance, missing-receipt recovery, discount accounting and a tested
-  read-only duplicate/resumption planner.
+## [1.0.0] - 2026-11-16
 
 ### Changed
 
@@ -33,12 +23,6 @@ All notable changes to this repository are tracked here.
   run-scoped audit contract and evidence-bound audit cohorts.
 - Document versioned parser reconciliation and historical audit target coverage.
 - Keep authorized publication-readback checks open and bound to the candidate.
-
-- Require statement-backed per-security dividend cash without assuming a uniform withholding rate.
-
-- Strengthen grocery workbook validation for numeric types, current summaries,
-  and empty-to-populated chart transitions.
-
 - **Breaking:** Replace the legacy `move-codex-chat` helper CLI with read-only
   preview and verification using native app inventory snapshots. Existing
   callers must migrate from `--chat`, `--source-project` and the implicit
@@ -47,8 +31,21 @@ All notable changes to this repository are tracked here.
   is never written. See the
   [CLI migration](codex-workflow/move-codex-chat/references/storage-layout.md#helper-cli-migration).
 
+### Added
+
+- Add `amazon-orders-importer` for guarded, repeatable order tracking, with
+  transaction reconciliation, split-payment tracking and a guarded importer.
+- Add `bitwarden-entry` for template-based vault entries.
+- Add `tricount-grocery-importer` for incremental Conad/Lidl receipt extraction
+  from already ingested Tricounts, private workspace configuration, source
+  provenance, missing-receipt recovery, discount accounting and a tested
+  read-only duplicate/resumption planner.
+
 ### Fixed
 
+- Require statement-backed per-security dividend cash without assuming a uniform withholding rate.
+- Strengthen grocery workbook validation for numeric types, current summaries,
+  and empty-to-populated chart transitions.
 - Preserve execution directories, worktrees and rollout history when moving chat
   membership with `move-codex-chat`. Use current native project inventory,
   consent-aware app controls and independent readback; remove private metadata
