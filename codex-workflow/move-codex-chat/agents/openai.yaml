@@ -1,4 +1,4 @@
 interface:
   display_name: "Move Codex Chat"
-  short_description: "Move a Codex chat between existing projects safely"
-  default_prompt: "Move this Codex chat to another existing project by updating local Codex metadata safely."
+  short_description: "Move chat membership while preserving cwd and worktree"
+  default_prompt: "Move this chat through native project controls and verify that its execution directory, worktree and history are preserved."

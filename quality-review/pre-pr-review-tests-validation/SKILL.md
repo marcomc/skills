@@ -12,6 +12,25 @@ broader pre-PR remediation. Do not edit files.
 
 ## Review Focus
 
+- For independently extracted PRs, test each consumer through its public
+  entrypoint using the producer retained at that PR's base. Cover valid evidence
+  and the malformed, stale or wrong-identity cases relevant to that consumer's
+  input contract; do not inject formats from sibling branches.
+- When a CLI handler gains a dependency, exercise the normal entrypoint with
+  the real construction and orchestration path, faking only external I/O.
+  Check every caller that must supply the changed dependency.
+- For restart recovery involving process ownership, use isolated persisted
+  state and fresh processes through the real entrypoint. Verify refusal while
+  the owner is alive and the permitted recovery after it settles.
+- For grouped evidence validation, mix valid and stale records and assert
+  that a local failure is attributed only to affected records while shared
+  evidence and genuine group-wide failures remain checked.
+- For disposable Git fixtures in isolated profiles, give nested Git processes
+  the same declared executable and isolated configuration as supervised Git;
+  inspect actual stderr when access differs from the host.
+- When a global admission gate runs inside candidate iteration, test multiple
+  candidates and verify a global telemetry failure stops the loop after one
+  probe instead of being retried as a candidate-local failure.
 - Tests that prove the changed behavior, including negative paths, disabled
   defaults, read-only behavior, and failure handling. For dry-run or check-mode
   regressions, assert that the prohibited side-effect boundary reports skipped
@@ -74,6 +93,13 @@ broader pre-PR remediation. Do not edit files.
   runtime config. Trace every fixture and static regression to the current
   authoritative implementation entrypoint and asserted task or symbol; renames
   and validator extraction must not leave a stale fixture testing dead logic.
+  For file-based audit baselines, exercise overlapping roots and path aliases
+  through discovery and baseline reuse; reject conflicting evidence for aliases
+  resolving to the same file.
+  For contract-driven extraction, run regressions against the actual reviewed
+  runtime contract without fixture-injected checks. Exercise normalization and
+  default admission through final configured fields, including narrow
+  allocation exceptions and independent printed-value evidence.
   For vendored or runtime-specific dependencies, load the exact deployed artifact
   under its production export/global environment. A Node package or test
   substitute does not prove the deployed bytes initialize correctly.
@@ -98,6 +124,12 @@ broader pre-PR remediation. Do not edit files.
 - Tests that require specific runtime configuration should set it in the test
   entrypoint (for example `@php -d phar.readonly=0 vendor/bin/phpunit`) instead
   of inheriting machine-global settings.
+- For permission-sensitive fixtures, separate private artifact permissions from
+  the child test environment. Set the expected child umask or fixture mode
+  explicitly and keep captured output private. Compare actual fixture mode and
+  inherited umask with expected values before attributing failure to source.
+  For canonical private-path guards, resolve test-owned temporary roots before
+  positive cases and retain explicit symlink or noncanonical negative cases.
 - CI and local gates that actually exercise the changed path rather than only
   syntax or happy-path checks.
 - For declarative check mode, run both fresh and converged topologies with
@@ -129,6 +161,9 @@ broader pre-PR remediation. Do not edit files.
   incompatible state while retaining sequences needed to reproduce defects.
 - Live-test safety: use explicit opt-in inputs and avoid touching production or
   costly resources unless the user authorized it.
+  When tests or nested helpers can default to shared live state, bind the whole
+  test process to a unique disposable state root; preserve required fixture
+  permissions and wait for process termination before cleanup.
 - Database-backed integration suites must remain import-safe with no configured
   database. Defer validation until explicit opt-in, skip selected integration
   items during collection, and assert invariants rather than private fixture

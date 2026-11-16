@@ -80,6 +80,12 @@ the current target, reconcile only this plan's edits and generate a fresh plan.
 An explicit version conflict needs a user/project-policy decision. Never
 renumber unrelated sections, force-push or overwrite a published tag.
 
+Before cleaning a source checkout, inventory active automation prompts,
+configuration, installed skill resolution and processes. Verify reviewed bytes
+and retain recovery evidence; under existing authorization, bind consumers to
+the explicit active runtime and preserve the release index. Keep that runtime
+owner until the merged target is verified before switching back.
+
 Run the [release-note review](references/validation.md#release-note-review),
 project-required checks and any requested pre-PR review on the complete scope.
 A check result has a timestamp and inputs; it is not a reservation.

@@ -12,5 +12,7 @@
 
 ## Maintenance
 
+- Revalidate native chat movement, consent handling and installed-copy parity
+  against the current Codex Desktop version before releasing `move-codex-chat`.
 - Keep `README.md` and `CHANGELOG.md` updated when skills are added, removed, renamed, or moved.
 - Re-run Markdown, shell, Python syntax, and `skills@latest` discovery checks before each release.

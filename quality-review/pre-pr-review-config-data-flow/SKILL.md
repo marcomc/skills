@@ -171,6 +171,9 @@ slices of a broader pre-PR remediation. Do not edit files.
   retain native booleans, numbers, strings, nulls, and collections wherever the
   downstream contract supports them. Verify provider-specific nullable enum
   and union translations against the current API contract and outbound payload.
+  For runtime event fixtures, compare complete envelopes and identity fields
+  against the selected runtime schema and bounded observed responses; distinguish
+  diagnostics, terminal status, final output, and execution authority.
   Exercise validators with schemas emitted by the actual installer or template
   producer, including optional aggregate fields and complete component groups.
   Keep configured columns distinct from printed representations: accept a
